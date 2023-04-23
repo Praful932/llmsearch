@@ -20,6 +20,8 @@ jupyter = "^1.0.0"
 jupyter-contrib-nbextensions = "^0.7.0"
 jedi = "0.17.2"
 sentencepiece = "^0.1.97"
+pre-commit = "^3.2.2"
+pylint = "^2.17.2"
 
 
 [tool.poetry.group.dev.dependencies]
