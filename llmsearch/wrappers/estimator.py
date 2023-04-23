@@ -18,7 +18,7 @@ class EstimatorWrapper(BaseEstimator):
     def __init__(
         self,
         model: AutoModelForSeq2SeqLM,
-        tokenizer: AutoTokenizer(),
+        tokenizer: AutoTokenizer,
         batch_size: int,
         device: str,
         model_input_tokenizer_kwargs: dict,
@@ -42,7 +42,7 @@ class EstimatorWrapper(BaseEstimator):
             self.__setattr__(k, v)
 
     # pylint: disable=W0613
-    def fit(self, **args):
+    def fit(self, X, y, **kwargs):
         """_summary_
 
         Args:

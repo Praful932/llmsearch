@@ -1,17 +1,19 @@
 """
 Common Utilties for Models
 """
+import math
 import gc
 import time
 from itertools import islice
 from typing import List, Dict, Union, Iterable, Iterator
 
+from tqdm.auto import tqdm
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 
 def infer_data(
-    model: AutoModelForSeq2SeqLM(),
-    tokenizer: AutoTokenizer(),
+    model: AutoModelForSeq2SeqLM,
+    tokenizer: AutoTokenizer,
     device: str,
     model_inputs: List,
     model_input_tokenizer_kwargs: Dict,
@@ -34,7 +36,10 @@ def infer_data(
     """
     start = time.time()
     outputs = []
-    for batch in batcher(iterable=model_inputs, batch_size=batch_size):
+    for batch in tqdm(
+        batcher(iterable=model_inputs, batch_size=batch_size),
+        total=math.ceil(len(model_inputs) / batch_size),
+    ):
         gc.collect()
         input_ids = tokenizer(
             text=batch, **model_input_tokenizer_kwargs, return_tensors="pt"
