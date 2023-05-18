@@ -22,6 +22,7 @@ jedi = "0.17.2"
 sentencepiece = "^0.1.97"
 pre-commit = "^3.2.2"
 pylint = "^2.17.2"
+toma = "^1.1.0"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -1,24 +1,55 @@
 """
 Common Utilties for Models
 """
+import random
 import math
 import gc
 import time
 from itertools import islice
 from typing import List, Dict, Union, Iterable, Iterator
 
+import torch
+import numpy as np
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from llmsearch.utils.mem_utils import batch
 
 
+def get_device():
+    if torch.backends.mps.is_built() and torch.backends.mps.is_available():
+        return "mps"
+    elif torch.cuda.is_available():
+        return "cuda"
+    return "cpu"
+
+def seed_everything(seed):
+    """Seed for reproducibilty"""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+
+
+"""
+TODO
+1. decorator that is being used is not correct, understand how parametrized decorator works
+2. write a custom decorator which takes that into account
+"""
+
+@batch
 def infer_data(
     model: AutoModelForSeq2SeqLM,
     tokenizer: AutoTokenizer,
     device: str,
+    batch_size : int,
     model_inputs: List,
     model_input_tokenizer_kwargs: Dict,
     generation_kwargs: Dict,
-    batch_size: int,
 ) -> Union[List, float]:
     """Infer on data with a specific batch size
 
@@ -34,6 +65,7 @@ def infer_data(
     Returns:
         Union[List, float]: _description_
     """
+    assert isinstance(model_input_tokenizer_kwargs, Dict), f"Incorrect tokenizer kwargs input, expected Dict - {model_input_tokenizer_kwargs}"
     start = time.time()
     outputs = []
     for batch in tqdm(

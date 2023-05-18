@@ -4000,6 +4000,26 @@ docs = ["setuptools-rust", "sphinx", "sphinx-rtd-theme"]
 testing = ["black (==22.3)", "datasets", "numpy", "pytest", "requests"]
 
 [[package]]
+name = "toma"
+version = "1.1.0"
+description = "Write algorithms in PyTorch that adapt to the available (CUDA) memory"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "toma-1.1.0-py3-none-any.whl", hash = "sha256:e2d678bd286e8a1e8141277f21aa32bb635dc47e58c492d5f60efbf646927318"},
+    {file = "toma-1.1.0.tar.gz", hash = "sha256:d4b7d04d3c8a5b4ce4fee30a92282e29e95f4b641db20d1c6f458d13e8793b7a"},
+]
+
+[package.dependencies]
+psutil = "*"
+torch = "*"
+
+[package.extras]
+dev = ["check-manifest"]
+test = ["codecov", "coverage", "pytest", "pytest-benchmark", "pytest-cov", "pytest-forked"]
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -4620,4 +4640,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "fa4379b534fc7c3dc608c789f0f9162cfd898a0cc7e881d55ea833771f889ead"
+content-hash = "73cfa13a6c75014eeacbdec3c677184f1bc87c84e12674ccc5d54ab5065971d7"
