@@ -11,17 +11,21 @@ from sklearn.base import BaseEstimator
 from typing import List, Union, Tuple, Literal, Dict
 from llmsearch.utils.model_utils import batcher, infer_data
 
+from datasets import Dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 class EstimatorWrapper(BaseEstimator):
-    def __init__(self, model, tokenizer, device, batch_size = 32, model_input_tokenizer_kwargs = None, **kwargs):
+    def __init__(self, model, tokenizer, device, batch_size, model_input_tokenizer_kwargs, **kwargs):
         self.model = model
         self.tokenizer = tokenizer
         self.device = device
         self.batch_size = batch_size
         self.model_input_tokenizer_kwargs = model_input_tokenizer_kwargs
+        # Set generation params
         for k,v in kwargs.items():
             self.__setattr__(k, v)
 
-    def fit(self, X, y, **kwargs):
+    def fit(self, *args, **kwargs):
         self.is_fitted_ = True
         return self
 
@@ -30,11 +34,11 @@ class EstimatorWrapper(BaseEstimator):
             attr : getattr(self, attr) for attr in self.model_generation_param_keys
         }
         output, _ = infer_data(
-            batch_size=self.batch_size,
             model=self.model,
             tokenizer=self.tokenizer,
+            batch_size=self.batch_size,
             device = self.device,
-            model_inputs=batch,
+            model_inputs=X,
             model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs,
             generation_kwargs=model_generation_params,
         )
@@ -102,26 +106,35 @@ class EstimatorWrapper(BaseEstimator):
         return self
 
 class Tuner:
-    def __init__(self, model, tokenizer,  dataset, device, model_input_tokenizer_kwargs = None, batch_size = None, seed = 42, sample_ratio = 0.3, tokenizer_length_percentile = 0.9):
+    def __init__(self, model : AutoModelForCausalLM, tokenizer : AutoTokenizer, dataset : Union[Dataset, Dict], device : str, model_input_tokenizer_kwargs : Dict = None, batch_size : int = 32, seed : int = 42, sample_ratio : float = 0.3, tokenizer_length_percentile : float = 0.9):
         self.tokenizer = tokenizer
-        self.device = device
         self.dataset = dataset
-        self.model_input_tokenizer_kwargs = self.get_default_tokenizer_kwargs(sample_ratio = sample_ratio,tokenizer_length_percentile=tokenizer_length_percentile, tokenizer_kwargs=model_input_tokenizer_kwargs)
-        self.batch_size = batch_size
-        self.estimator = EstimatorWrapper(model=model, tokenizer = tokenizer, device=device, batch_size=batch_size, model_input_tokenizer_kwargs=model_input_tokenizer_kwargs)
+        self.device = device
+        self.model_input_tokenizer_kwargs = self.get_default_input_tokenizer_kwargs(sample_ratio = sample_ratio,tokenizer_length_percentile=tokenizer_length_percentile, tokenizer_kwargs=model_input_tokenizer_kwargs)
         self.seed = seed
         self.sample_ratio = sample_ratio
         self.tokenizer_length_percentile = tokenizer_length_percentile
+        self.estimator = EstimatorWrapper(model=model, tokenizer = tokenizer, device=device, batch_size=batch_size, model_input_tokenizer_kwargs=model_input_tokenizer_kwargs)
 
 
-    def get_default_tokenizer_kwargs(self, sample_ratio,tokenizer_length_percentile, tokenizer_kwargs):
-        def get_max_length(X):
+    def get_default_input_tokenizer_kwargs(self, sample_ratio : float,tokenizer_length_percentile : float, tokenizer_kwargs : Union[Dict, None]):
+        """Get default input tokenizer kwargs
+
+        Args:
+            sample_ratio (float): _description_
+            tokenizer_length_percentile (float): _description_
+            tokenizer_kwargs (Union[Dict, None]): _description_
+        """
+        def get_max_length(X : Dict) -> float:
+            """Get max length - we take it as a quantile of the input data, default - tokenizer_length_percentile
+            """
             batch_input_ids = self.tokenizer(X, max_length=None, truncation=False, padding=False)['input_ids']
             batch_input_ids = list(map(len, batch_input_ids))
             return np.quantile(batch_input_ids, q = tokenizer_length_percentile)
 
         if tokenizer_kwargs:
             return tokenizer_kwargs
+
         model_input_tokenizer_kwargs = {
             'padding' : True,
             'truncation' : True,
@@ -130,7 +143,7 @@ class Tuner:
         random.seed(self.seed)
         sample_indexes = random.randint(range(0, len(self.dataset['y'])), sample_size)
         get_items = itemgetter(*sample_indexes)
-        X, y = get_items(self.dataset['X']), get_items(self.dataset['y'])
+        X = get_items(self.dataset['X'])
         model_input_tokenizer_kwargs['max_length'] = get_max_length(X)
         return model_input_tokenizer_kwargs
 

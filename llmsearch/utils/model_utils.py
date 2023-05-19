@@ -33,20 +33,12 @@ def seed_everything(seed):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-
-
-"""
-TODO
-1. decorator that is being used is not correct, understand how parametrized decorator works
-2. write a custom decorator which takes that into account
-"""
-
 @batch
 def infer_data(
     model: AutoModelForSeq2SeqLM,
     tokenizer: AutoTokenizer,
-    device: str,
     batch_size : int,
+    device: str,
     model_inputs: List,
     model_input_tokenizer_kwargs: Dict,
     generation_kwargs: Dict,

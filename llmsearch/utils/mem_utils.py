@@ -19,9 +19,11 @@ def batch(func):
                 return res
             except RuntimeError as exception:
                 if batch_size > 1 and should_reduce_batch_size(exception):
+                    print(f"Unable to fit batch size - {batch_size}, Reducing batch size to - {batch_size // 2}")
                     batch_size //= 2
                     gc_cuda()
                 else:
+                    print("Unable to fit the lowest batch size")
                     raise
     return inner_wrapper
 
