@@ -106,12 +106,12 @@ class EstimatorWrapper(BaseEstimator):
         return self
 
 class Tuner:
-    def __init__(self, model : AutoModelForCausalLM, tokenizer : AutoTokenizer, dataset : Union[Dataset, Dict], device : str, model_input_tokenizer_kwargs : Dict = None, batch_size : int = 32, seed : int = 42, sample_ratio : float = 0.3, tokenizer_length_percentile : float = 0.9):
+    def __init__(self, model : AutoModelForCausalLM, tokenizer : AutoTokenizer, dataset : Union[Dataset, Dict], device : str, seed : int = 42, model_input_tokenizer_kwargs : Dict = None, batch_size : int = 32, sample_ratio : float = 0.3, tokenizer_length_percentile : float = 0.9):
         self.tokenizer = tokenizer
         self.dataset = dataset
         self.device = device
-        self.model_input_tokenizer_kwargs = self.get_default_input_tokenizer_kwargs(sample_ratio = sample_ratio,tokenizer_length_percentile=tokenizer_length_percentile, tokenizer_kwargs=model_input_tokenizer_kwargs)
         self.seed = seed
+        self.model_input_tokenizer_kwargs = self.get_default_input_tokenizer_kwargs(sample_ratio = sample_ratio,tokenizer_length_percentile=tokenizer_length_percentile, tokenizer_kwargs=model_input_tokenizer_kwargs)
         self.sample_ratio = sample_ratio
         self.tokenizer_length_percentile = tokenizer_length_percentile
         self.estimator = EstimatorWrapper(model=model, tokenizer = tokenizer, device=device, batch_size=batch_size, model_input_tokenizer_kwargs=model_input_tokenizer_kwargs)
