@@ -22,6 +22,7 @@ class EstimatorWrapper(BaseEstimator):
         tokenizer,
         device,
         batch_size,
+        disable_batch_size_cache,
         model_input_tokenizer_kwargs,
         **kwargs,
     ):
@@ -29,6 +30,7 @@ class EstimatorWrapper(BaseEstimator):
         self.tokenizer = tokenizer
         self.device = device
         self.batch_size = batch_size
+        self.disable_batch_size_cache = disable_batch_size_cache
         self.model_input_tokenizer_kwargs = model_input_tokenizer_kwargs
         # Set generation params
         for k, v in kwargs.items():
@@ -46,6 +48,7 @@ class EstimatorWrapper(BaseEstimator):
             model=self.model,
             tokenizer=self.tokenizer,
             batch_size=self.batch_size,
+            disable_batch_size_cache=self.disable_batch_size_cache,
             device=self.device,
             model_inputs=X,
             model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs,
@@ -124,6 +127,7 @@ class Tuner:
         seed: int = 42,
         model_input_tokenizer_kwargs: Dict = None,
         batch_size: int = 32,
+        disable_batch_size_cache : bool = False,
         sample_ratio: float = 0.3,
         tokenizer_length_percentile: float = 0.9,
     ):
@@ -143,6 +147,7 @@ class Tuner:
             tokenizer=tokenizer,
             device=device,
             batch_size=batch_size,
+            disable_batch_size_cache=disable_batch_size_cache,
             model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs,
         )
 

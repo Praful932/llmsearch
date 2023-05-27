@@ -38,6 +38,7 @@ def infer_data(
     model: AutoModelForSeq2SeqLM,
     tokenizer: AutoTokenizer,
     batch_size : int,
+    disable_batch_size_cache : bool,
     device: str,
     model_inputs: List,
     model_input_tokenizer_kwargs: Dict,
