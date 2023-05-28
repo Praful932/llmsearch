@@ -3,7 +3,7 @@
 """
 
 import gc
-import functools
+import inspect
 import traceback
 import torch
 
@@ -16,21 +16,32 @@ class Cache:
         self.cache = {}
 
     def set_value(self,value, stacktrace, total_available_gpu_memory, total_available_ram_memory):
+        hash_key = (stacktrace, total_available_gpu_memory, total_available_ram_memory)
+        print(hash_key)
         self.cache[(stacktrace, total_available_gpu_memory, total_available_ram_memory)] = value
 
     def get_value(self, initial_value, stacktrace, total_available_gpu_memory, total_available_ram_memory):
         hash_key = (stacktrace, total_available_gpu_memory, total_available_ram_memory)
+        print(hash_key)
         if hash_key in self.cache:
             val = self.cache[hash_key]
-            print(f"Picking up {val} from cache, initial passed in batch size - {initial_value}")
             return val
         return initial_value
 
     def is_empty(self):
-        return bool(len(self.cache))
+        return not bool(len(self.cache))
 
     def empty_cache(self):
         self.cache = {}
+
+def get_traceback(ignore_first = 0, stack_context = 5):
+    print(f"stacktrace - {inspect.stack(context=1)}")
+    stack = inspect.stack(context=1)[ignore_first:ignore_first+stack_context]
+    simple_traceback = tuple(
+        (fi.function, fi.code_context[0]) for fi in stack
+    )
+    return simple_traceback
+
 
 cache = Cache()
 
@@ -41,7 +52,6 @@ def batch(func):
     Args:
         func (_type_): _description_
     """
-    stacktrace_limit = 4
     def inner_wrapper(*args, batch_size, disable_batch_size_cache, **kwargs):
 
         """
@@ -61,8 +71,8 @@ def batch(func):
         else:
             if not cache.is_empty():
                 # Get cached batch size if present
-                stacktrace = traceback.extract_stack(limit = stacktrace_limit)
-                total_available_gpu_memory = get_gpu_information()
+                stacktrace = get_traceback(ignore_first=20, stack_context=10)
+                total_available_gpu_memory = get_gpu_information()[2]
                 total_available_ram_memory = get_total_available_ram()
                 batch_size = cache.get_value(initial_value=batch_size, stacktrace=stacktrace,total_available_gpu_memory=total_available_gpu_memory, total_available_ram_memory=total_available_ram_memory)
         while True:
@@ -70,7 +80,7 @@ def batch(func):
                 res = func(*args,batch_size = batch_size,disable_batch_size_cache=disable_batch_size_cache, **kwargs)
                 gc_cuda()
                 if not disable_batch_size_cache:
-                    stacktrace = traceback.extract_stack(limit = stacktrace_limit)
+                    stacktrace = get_traceback(ignore_first=20, stack_context=10)
                     total_available_gpu_memory = get_gpu_information()[2]
                     total_available_ram_memory = get_total_available_ram()
                     # Set value for next iteration with the input hash
@@ -151,4 +161,8 @@ def get_gpu_information():
 def get_total_available_ram():
     memory = psutil.virtual_memory()
     total_available_ram = memory.available
-    return total_available_ram
+
+    # Round available RAM to the nearest GB
+    total_available_ram_gb = math.ceil(total_available_ram / (1024**3))
+
+    return total_available_ram_gb

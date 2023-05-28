@@ -8,12 +8,14 @@ import numpy as np
 
 from tqdm.auto import tqdm
 from sklearn.base import BaseEstimator
+from sklearn.metrics import make_scorer
 from typing import List, Union, Tuple, Literal, Dict
 from llmsearch.utils.model_utils import batcher, infer_data
 
 from datasets import Dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from typing import Callable
 
 class EstimatorWrapper(BaseEstimator):
     def __init__(
@@ -21,17 +23,21 @@ class EstimatorWrapper(BaseEstimator):
         model,
         tokenizer,
         device,
+        scorer,
         batch_size,
         disable_batch_size_cache,
         model_input_tokenizer_kwargs,
+        pred_function = None,
         **kwargs,
     ):
         self.model = model
         self.tokenizer = tokenizer
         self.device = device
+        self.scorer = scorer
         self.batch_size = batch_size
         self.disable_batch_size_cache = disable_batch_size_cache
         self.model_input_tokenizer_kwargs = model_input_tokenizer_kwargs
+        self.pred_function = pred_function
         # Set generation params
         for k, v in kwargs.items():
             self.__setattr__(k, v)
@@ -41,6 +47,8 @@ class EstimatorWrapper(BaseEstimator):
         return self
 
     def predict(self, X):
+        if self.pred_function:
+            return self.pred_function(X)
         model_generation_params = {
             attr: getattr(self, attr) for attr in self.model_generation_param_keys
         }
@@ -124,6 +132,7 @@ class Tuner:
         tokenizer: AutoTokenizer,
         dataset: Union[Dataset, Dict],
         device: str,
+        scorer : Callable,
         seed: int = 42,
         model_input_tokenizer_kwargs: Dict = None,
         batch_size: int = 32,
@@ -135,6 +144,7 @@ class Tuner:
         self.dataset = dataset
         self.device = device
         self.seed = seed
+        self.scorer = scorer
         self.model_input_tokenizer_kwargs = self.get_default_input_tokenizer_kwargs(
             sample_ratio=sample_ratio,
             tokenizer_length_percentile=tokenizer_length_percentile,
@@ -144,8 +154,9 @@ class Tuner:
         self.tokenizer_length_percentile = tokenizer_length_percentile
         self.estimator = EstimatorWrapper(
             model=model,
-            tokenizer=tokenizer,
-            device=device,
+            tokenizer=self.tokenizer,
+            device=self.device,
+            scorer = self.scorer,
             batch_size=batch_size,
             disable_batch_size_cache=disable_batch_size_cache,
             model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs,
