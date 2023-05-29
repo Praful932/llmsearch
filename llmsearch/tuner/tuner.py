@@ -151,7 +151,6 @@ class Tuner:
         self.scorer = make_scorer(score_func = scorer, greater_is_better = greater_is_better)
         self.model_input_tokenizer_kwargs = self.get_default_input_tokenizer_kwargs(
             sample_ratio=sample_ratio,
-            tokenizer_length_percentile=tokenizer_length_percentile,
             tokenizer_kwargs=model_input_tokenizer_kwargs,
         )
         self.disable_batch_size_cache = disable_batch_size_cache
@@ -170,7 +169,6 @@ class Tuner:
     def get_default_input_tokenizer_kwargs(
         self,
         sample_ratio: float,
-        tokenizer_length_percentile: float,
         tokenizer_kwargs: Union[Dict, None],
     ):
         """Get default input tokenizer kwargs
@@ -180,14 +178,6 @@ class Tuner:
             tokenizer_length_percentile (float): _description_
             tokenizer_kwargs (Union[Dict, None]): _description_
         """
-
-        def get_max_length(X: Dict) -> float:
-            """Get max length - we take it as a quantile of the input data, default - tokenizer_length_percentile"""
-            batch_input_ids = self.tokenizer(
-                X, max_length=None, truncation=False, padding=False
-            )["input_ids"]
-            batch_input_ids = list(map(len, batch_input_ids))
-            return int(np.quantile(batch_input_ids, q=tokenizer_length_percentile))
 
         if tokenizer_kwargs:
             return tokenizer_kwargs
@@ -201,12 +191,18 @@ class Tuner:
         sample_indexes = random.sample(range(0, len(self.dataset["y"])), sample_size)
         get_items = itemgetter(*sample_indexes)
         X = get_items(self.dataset["X"])
-        model_input_tokenizer_kwargs["max_length"] = get_max_length(X)
+        model_input_tokenizer_kwargs["max_length"] = self.get_tokenizer_quantile(input_list = X, tokenizer_length_percentile = self.tokenizer_length_percentile)
         return model_input_tokenizer_kwargs
 
-    def get_score(self, best_generation_params, dataset = None):
+    def get_score(self, generation_params, dataset = None):
         dataset_to_evaluate = dataset if dataset else self.dataset
         y_true = dataset_to_evaluate['X']
-        y_pred = infer_data(model=self.estimator.model, tokenizer=self.tokenizer,batch_size=self.estimator.optimal_batch_size, device=self.device, model_inputs=dataset_to_evaluate['X'], model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs, generation_kwargs=best_generation_params, disable_batch_size_cache=self.disable_batch_size_cache)
+        y_pred = infer_data(model=self.estimator.model, tokenizer=self.tokenizer,batch_size=self.estimator.optimal_batch_size, device=self.device, model_inputs=dataset_to_evaluate['X'], model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs, generation_kwargs=generation_params, disable_batch_size_cache=self.disable_batch_size_cache)
         score = self.score_func(y_true = y_true, y_pred = y_pred)
         return score
+
+    def get_tokenizer_quantile(self, input_list, tokenizer_length_percentile):
+        """Get max length - we take it as a quantile of the input data, default - tokenizer_length_percentile"""
+        input_ids = self.tokenizer(input_list, max_length = None, truncation = False, padding = False)["input_ids"]
+        batch_ids = list(map(len, input_ids))
+        return int(np.quantile(batch_ids, q=tokenizer_length_percentile))
