@@ -53,7 +53,7 @@ class EstimatorWrapper(BaseEstimator):
         model_generation_params = {
             attr: getattr(self, attr) for attr in self.model_generation_param_keys
         }
-        output, _ = infer_data(
+        output, self.optimal_batch_size = infer_data(
             model=self.model,
             tokenizer=self.tokenizer,
             batch_size=self.batch_size,
@@ -62,7 +62,7 @@ class EstimatorWrapper(BaseEstimator):
             model_inputs=X,
             model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs,
             generation_kwargs=model_generation_params,
-            estimator_ob=self,
+            return_optimal_batch_size=True,
         )
         return output
 
@@ -207,6 +207,6 @@ class Tuner:
     def get_score(self, best_generation_params, dataset = None):
         dataset_to_evaluate = dataset if dataset else self.dataset
         y_true = dataset_to_evaluate['X']
-        y_pred, _ = infer_data(model=self.estimator.model, tokenizer=self.tokenizer,batch_size=self.estimator.optimal_batch_size, device=self.device, model_inputs=dataset_to_evaluate['X'], model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs, generation_kwargs=best_generation_params, disable_batch_size_cache=self.disable_batch_size_cache)
+        y_pred = infer_data(model=self.estimator.model, tokenizer=self.tokenizer,batch_size=self.estimator.optimal_batch_size, device=self.device, model_inputs=dataset_to_evaluate['X'], model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs, generation_kwargs=best_generation_params, disable_batch_size_cache=self.disable_batch_size_cache)
         score = self.score_func(y_true = y_true, y_pred = y_pred)
         return score

@@ -17,7 +17,7 @@ class Cache:
 
     def set_value(self,value, stacktrace, total_available_gpu_memory, total_available_ram_memory):
         hash_key = (stacktrace, total_available_gpu_memory, total_available_ram_memory)
-        self.cache[(stacktrace, total_available_gpu_memory, total_available_ram_memory)] = value
+        self.cache[hash_key] = value
 
     def get_value(self, initial_value, stacktrace, total_available_gpu_memory, total_available_ram_memory):
         hash_key = (stacktrace, total_available_gpu_memory, total_available_ram_memory)

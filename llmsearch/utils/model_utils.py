@@ -13,8 +13,6 @@ import numpy as np
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from llmsearch.utils.mem_utils import batch
-from llmsearch.tuner import EstimatorWrapper
-
 
 def get_device():
     if torch.backends.mps.is_built() and torch.backends.mps.is_available():
@@ -44,7 +42,7 @@ def infer_data(
     model_inputs: List,
     model_input_tokenizer_kwargs: Dict,
     generation_kwargs: Dict,
-    estimator_ob : EstimatorWrapper = None,
+    return_optimal_batch_size : bool = False,
 ) -> Union[List, float]:
     """Infer on data with a specific batch size
 
@@ -61,7 +59,6 @@ def infer_data(
         Union[List, float]: _description_
     """
     assert isinstance(model_input_tokenizer_kwargs, Dict), f"Incorrect tokenizer kwargs input, expected Dict - {model_input_tokenizer_kwargs}"
-    start = time.time()
     outputs = []
     for batch in tqdm(
         batcher(iterable=model_inputs, batch_size=batch_size),
@@ -76,11 +73,9 @@ def infer_data(
             sequences=output_ids, skip_special_tokens=True
         )
         outputs.extend(decoded_output)
-    end = time.time()
-    total_latency = (end - start) * 1000
-    if estimator_ob is not None:
-        estimator_ob.optimal_batch_size = batch_size
-    return outputs, total_latency
+    if return_optimal_batch_size:
+        return outputs, batch_size
+    return outputs
 
 
 def batcher(iterable: Iterable, batch_size: int) -> Iterator:
