@@ -17,12 +17,10 @@ class Cache:
 
     def set_value(self,value, stacktrace, total_available_gpu_memory, total_available_ram_memory):
         hash_key = (stacktrace, total_available_gpu_memory, total_available_ram_memory)
-        print(hash_key)
         self.cache[(stacktrace, total_available_gpu_memory, total_available_ram_memory)] = value
 
     def get_value(self, initial_value, stacktrace, total_available_gpu_memory, total_available_ram_memory):
         hash_key = (stacktrace, total_available_gpu_memory, total_available_ram_memory)
-        print(hash_key)
         if hash_key in self.cache:
             val = self.cache[hash_key]
             return val
@@ -35,7 +33,6 @@ class Cache:
         self.cache = {}
 
 def get_traceback(ignore_first = 0, stack_context = 5):
-    print(f"stacktrace - {inspect.stack(context=1)}")
     stack = inspect.stack(context=1)[ignore_first:ignore_first+stack_context]
     simple_traceback = tuple(
         (fi.function, fi.code_context[0]) for fi in stack
@@ -83,6 +80,7 @@ def batch(func):
                     stacktrace = get_traceback(ignore_first=20, stack_context=10)
                     total_available_gpu_memory = get_gpu_information()[2]
                     total_available_ram_memory = get_total_available_ram()
+                    print(f"Total available ram memory - {total_available_ram_memory}, Total available gpu memory - {total_available_gpu_memory}\n")
                     # Set value for next iteration with the input hash
                     cache.set_value(value=batch_size, stacktrace=stacktrace,total_available_gpu_memory=total_available_gpu_memory, total_available_ram_memory=total_available_ram_memory)
                 return res
