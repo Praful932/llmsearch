@@ -74,6 +74,7 @@ def batch(func):
                 batch_size = cache.get_value(initial_value=batch_size, stacktrace=stacktrace,total_available_gpu_memory=total_available_gpu_memory, total_available_ram_memory=total_available_ram_memory)
         while True:
             try:
+                print(f"Performing inference with batch_size - {batch_size}")
                 res = func(*args,batch_size = batch_size,disable_batch_size_cache=disable_batch_size_cache, **kwargs)
                 gc_cuda()
                 if not disable_batch_size_cache:
