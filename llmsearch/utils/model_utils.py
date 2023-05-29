@@ -13,6 +13,7 @@ import numpy as np
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from llmsearch.utils.mem_utils import batch
+from llmsearch.tuner import EstimatorWrapper
 
 
 def get_device():
@@ -43,6 +44,7 @@ def infer_data(
     model_inputs: List,
     model_input_tokenizer_kwargs: Dict,
     generation_kwargs: Dict,
+    estimator_ob : EstimatorWrapper = None,
 ) -> Union[List, float]:
     """Infer on data with a specific batch size
 
@@ -76,6 +78,8 @@ def infer_data(
         outputs.extend(decoded_output)
     end = time.time()
     total_latency = (end - start) * 1000
+    if estimator_ob is not None:
+        estimator_ob.optimal_batch_size = batch_size
     return outputs, total_latency
 
 

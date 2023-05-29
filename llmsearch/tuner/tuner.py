@@ -35,6 +35,7 @@ class EstimatorWrapper(BaseEstimator):
         self.device = device
         self.scorer = scorer
         self.batch_size = batch_size
+        self.optimal_batch_size = batch_size
         self.disable_batch_size_cache = disable_batch_size_cache
         self.model_input_tokenizer_kwargs = model_input_tokenizer_kwargs
         self.pred_function = pred_function
@@ -61,6 +62,7 @@ class EstimatorWrapper(BaseEstimator):
             model_inputs=X,
             model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs,
             generation_kwargs=model_generation_params,
+            estimator_ob=self,
         )
         return output
 
@@ -145,12 +147,14 @@ class Tuner:
         self.dataset = dataset
         self.device = device
         self.seed = seed
+        self.score_func = scorer
         self.scorer = make_scorer(score_func = scorer, greater_is_better = greater_is_better)
         self.model_input_tokenizer_kwargs = self.get_default_input_tokenizer_kwargs(
             sample_ratio=sample_ratio,
             tokenizer_length_percentile=tokenizer_length_percentile,
             tokenizer_kwargs=model_input_tokenizer_kwargs,
         )
+        self.disable_batch_size_cache = disable_batch_size_cache
         self.sample_ratio = sample_ratio
         self.tokenizer_length_percentile = tokenizer_length_percentile
         self.estimator = EstimatorWrapper(
@@ -200,9 +204,9 @@ class Tuner:
         model_input_tokenizer_kwargs["max_length"] = get_max_length(X)
         return model_input_tokenizer_kwargs
 
-    def get_score(best_generation_params, dataset = None, ):
+    def get_score(self, best_generation_params, dataset = None):
         dataset_to_evaluate = dataset if dataset else self.dataset
-        metrics = []
-
-        y_pred, _ = infer_data(model=self.estimator.model, tokenizer=self.tokenizer, device=self.device, model_inputs=dataset_to_evaluate['X'], model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs, generation_kwargs=best_generation_params)
-
+        y_true = dataset_to_evaluate['X']
+        y_pred, _ = infer_data(model=self.estimator.model, tokenizer=self.tokenizer,batch_size=self.estimator.optimal_batch_size, device=self.device, model_inputs=dataset_to_evaluate['X'], model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs, generation_kwargs=best_generation_params, disable_batch_size_cache=self.disable_batch_size_cache)
+        score = self.score_func(y_true = y_true, y_pred = y_pred)
+        return score
