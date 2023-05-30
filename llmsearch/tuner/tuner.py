@@ -149,13 +149,13 @@ class Tuner:
         self.seed = seed
         self.score_func = scorer
         self.scorer = make_scorer(score_func = scorer, greater_is_better = greater_is_better)
+        self.disable_batch_size_cache = disable_batch_size_cache
+        self.sample_ratio = sample_ratio
+        self.tokenizer_length_percentile = tokenizer_length_percentile
         self.model_input_tokenizer_kwargs = self.get_default_input_tokenizer_kwargs(
             sample_ratio=sample_ratio,
             tokenizer_kwargs=model_input_tokenizer_kwargs,
         )
-        self.disable_batch_size_cache = disable_batch_size_cache
-        self.sample_ratio = sample_ratio
-        self.tokenizer_length_percentile = tokenizer_length_percentile
         self.estimator = EstimatorWrapper(
             model=model,
             tokenizer=self.tokenizer,
@@ -201,8 +201,9 @@ class Tuner:
         score = self.score_func(y_true = y_true, y_pred = y_pred)
         return score
 
-    def get_tokenizer_quantile(self, input_list, tokenizer_length_percentile):
+    def get_tokenizer_quantile(self, input_list, tokenizer_length_percentile = None):
         """Get max length - we take it as a quantile of the input data, default - tokenizer_length_percentile"""
+        tokenizer_length_percentile = self.tokenizer_length_percentile if tokenizer_length_percentile is None else tokenizer_length_percentile
         input_ids = self.tokenizer(input_list, max_length = None, truncation = False, padding = False)["input_ids"]
         batch_ids = list(map(len, input_ids))
         return int(np.quantile(batch_ids, q=tokenizer_length_percentile))
