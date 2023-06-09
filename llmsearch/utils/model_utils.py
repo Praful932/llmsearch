@@ -36,6 +36,7 @@ def seed_everything(seed):
 def infer_data(
     model: AutoModelForSeq2SeqLM,
     tokenizer: AutoTokenizer,
+    is_encoder_decoder : bool,
     batch_size : int,
     disable_batch_size_cache : bool,
     device: str,
@@ -72,6 +73,8 @@ def infer_data(
         decoded_output = tokenizer.batch_decode(
             sequences=output_ids, skip_special_tokens=True
         )
+        if not is_encoder_decoder:
+            decoded_output = decoder_parser(outputs = outputs, formatted_prompts=batch)
         outputs.extend(decoded_output)
     if return_optimal_batch_size:
         return outputs, batch_size
@@ -91,3 +94,9 @@ def batcher(iterable: Iterable, batch_size: int) -> Iterator:
     iterator = iter(iterable)
     while batch := list(islice(iterator, batch_size)):
         yield batch
+
+def encoder_decoder_parser(output : str):
+    return output
+
+def decoder_parser(outputs : List[str],formatted_prompts : List[str]):
+    return [output[len(formatted_prompt)-1:] for output, formatted_prompt in zip(outputs, formatted_prompts)]

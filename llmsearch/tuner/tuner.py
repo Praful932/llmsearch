@@ -4,13 +4,13 @@ import warnings
 import collections
 from operator import itemgetter
 
+import langchain
 import numpy as np
-
 from tqdm.auto import tqdm
 from sklearn.base import BaseEstimator
 from sklearn.metrics import make_scorer
 from typing import List, Union, Tuple, Literal, Dict
-from llmsearch.utils.model_utils import batcher, infer_data
+from llmsearch.utils.model_utils import batcher, infer_data, encoder_decoder_parser, decoder_parser
 
 from datasets import Dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -22,6 +22,7 @@ class EstimatorWrapper(BaseEstimator):
         self,
         model,
         tokenizer,
+        is_encoder_decoder,
         device,
         scorer,
         batch_size,
@@ -32,6 +33,7 @@ class EstimatorWrapper(BaseEstimator):
     ):
         self.model = model
         self.tokenizer = tokenizer
+        self.is_encoder_decoder = is_encoder_decoder
         self.device = device
         self.scorer = scorer
         self.batch_size = batch_size
@@ -56,6 +58,7 @@ class EstimatorWrapper(BaseEstimator):
         output, self.optimal_batch_size = infer_data(
             model=self.model,
             tokenizer=self.tokenizer,
+            is_encoder_decoder = self.is_encoder_decoder,
             batch_size=self.batch_size,
             disable_batch_size_cache=self.disable_batch_size_cache,
             device=self.device,
@@ -132,9 +135,11 @@ class Tuner:
         self,
         model: AutoModelForCausalLM,
         tokenizer: AutoTokenizer,
+        prompt_template : langchain.BasePromptTemplate,
         dataset: Union[Dataset, Dict],
         device: str,
         scorer : Callable,
+        is_encoder_decoder = None,
         greater_is_better : bool = True,
         seed: int = 42,
         model_input_tokenizer_kwargs: Dict = None,
@@ -144,7 +149,8 @@ class Tuner:
         tokenizer_length_percentile: float = 0.9,
     ):
         self.tokenizer = tokenizer
-        self.dataset = dataset
+        self.prompt_template = prompt_template
+        self.dataset = dataset.map(lambda sample : {'X' : self.prompt_template.format(X=sample['X']), 'y' : sample['y']})
         self.device = device
         self.seed = seed
         self.score_func = scorer
@@ -159,6 +165,7 @@ class Tuner:
         self.estimator = EstimatorWrapper(
             model=model,
             tokenizer=self.tokenizer,
+            is_encoder_decoder=self.is_encoder_decoder,
             device=self.device,
             scorer = self.scorer,
             batch_size=batch_size,
@@ -207,3 +214,5 @@ class Tuner:
         input_ids = self.tokenizer(input_list, max_length = None, truncation = False, padding = False)["input_ids"]
         batch_ids = list(map(len, input_ids))
         return int(np.quantile(batch_ids, q=tokenizer_length_percentile))
+
+    def determine_model_type()

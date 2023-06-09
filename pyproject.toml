@@ -6,7 +6,7 @@ authors = ["Praful932 <praful.mohanan@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8.1,<4.0"
 torch = {url = "https://download.pytorch.org/whl/cpu/torch-2.0.0-cp38-none-macosx_11_0_arm64.whl"}
 transformers = "^4.27.4"
 evaluate = "^0.4.0"
@@ -24,6 +24,7 @@ pre-commit = "^3.2.2"
 pylint = "^2.17.2"
 toma = "^1.1.0"
 nvidia-ml-py3 = "^7.352.0"
+langchain = "^0.0.189"
 
 
 [tool.poetry.group.dev.dependencies]
