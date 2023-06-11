@@ -71,10 +71,10 @@ def infer_data(
         # https://github.com/huggingface/transformers/issues/22405
         if 'do_sample' not in generation_kwargs:
             if not disable_warnings:
-                warnings.warn(message = f"Invalid generation settings, set `do_sample` parameter to make parameters like {sampling_generation_keys_input} work", stacklevel=2)
+                warnings.warn(message = f"Invalid generation settings, set `do_sample` parameter to make parameters like {sampling_generation_keys_input} work", stacklevel=3)
         if 'generation_seed' not in generation_kwargs:
             if not disable_warnings:
-                warnings.warn(message = "Generation seed not found in generation parameters, add `generation_seed` in `generation_kwargs` to ensure reproducibility for parameter search.", stacklevel=2)
+                warnings.warn(message = "Generation seed not found in generation parameters, add `generation_seed` in `generation_kwargs` to ensure reproducibility for parameter search.", stacklevel=3)
         elif 'do_sample' in generation_kwargs:
             seed_everything(seed = generation_kwargs.pop('generation_seed'))
     for batch in tqdm(
@@ -82,10 +82,12 @@ def infer_data(
         total=math.ceil(len(model_inputs) / batch_size),
     ):
         gc.collect()
-        input_ids = tokenizer(
+        encoded_input = tokenizer(
             text=batch, **model_input_tokenizer_kwargs, return_tensors="pt"
-        ).input_ids.to(device)
-        output_ids = model.generate(input_ids, **generation_kwargs)
+        )
+        input_ids =encoded_input.input_ids.to(device)
+        attention_mask =encoded_input.attention_mask.to(device)
+        output_ids = model.generate(inputs=input_ids,attention_mask=attention_mask, **generation_kwargs)
         decoded_output = tokenizer.batch_decode(
             sequences=output_ids, skip_special_tokens=True
         )
