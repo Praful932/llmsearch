@@ -139,7 +139,7 @@ class Tuner:
         dataset: Union[Dataset, Dict],
         device: str,
         scorer : Callable,
-        is_encoder_decoder = None,
+        is_encoder_decoder,
         greater_is_better : bool = True,
         seed: int = 42,
         model_input_tokenizer_kwargs: Dict = None,
@@ -165,7 +165,7 @@ class Tuner:
         self.estimator = EstimatorWrapper(
             model=model,
             tokenizer=self.tokenizer,
-            is_encoder_decoder=self.is_encoder_decoder,
+            is_encoder_decoder=is_encoder_decoder,
             device=self.device,
             scorer = self.scorer,
             batch_size=batch_size,
@@ -201,10 +201,10 @@ class Tuner:
         model_input_tokenizer_kwargs["max_length"] = self.get_tokenizer_quantile(input_list = X, tokenizer_length_percentile = self.tokenizer_length_percentile)
         return model_input_tokenizer_kwargs
 
-    def get_score(self, generation_params, dataset = None):
+    def get_score(self, generation_kwargs, dataset = None):
         dataset_to_evaluate = dataset if dataset else self.dataset
         y_true = dataset_to_evaluate['X']
-        y_pred = infer_data(model=self.estimator.model, tokenizer=self.tokenizer,batch_size=self.estimator.optimal_batch_size, device=self.device, model_inputs=dataset_to_evaluate['X'], model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs, generation_kwargs=generation_params, disable_batch_size_cache=self.disable_batch_size_cache)
+        y_pred = infer_data(model=self.estimator.model, tokenizer=self.tokenizer,is_encoder_decoder = self.estimator.is_encoder_decoder,batch_size=self.estimator.optimal_batch_size, device=self.device, model_inputs=dataset_to_evaluate['X'], model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs, generation_kwargs=generation_kwargs, disable_batch_size_cache=self.disable_batch_size_cache)
         score = self.score_func(y_true = y_true, y_pred = y_pred)
         return score
 
@@ -214,5 +214,3 @@ class Tuner:
         input_ids = self.tokenizer(input_list, max_length = None, truncation = False, padding = False)["input_ids"]
         batch_ids = list(map(len, input_ids))
         return int(np.quantile(batch_ids, q=tokenizer_length_percentile))
-
-    def determine_model_type()

@@ -1,10 +1,11 @@
 """
 Common Utilties for Models
 """
-import random
-import math
 import gc
+import math
 import time
+import random
+import warnings
 from itertools import islice
 from typing import List, Dict, Union, Iterable, Iterator
 
@@ -13,6 +14,9 @@ import numpy as np
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from llmsearch.utils.mem_utils import batch
+
+# generation parameters required for sampling
+sampling_generation_keys = {'temperature', 'top_k', 'top_p'}
 
 def get_device():
     if torch.backends.mps.is_built() and torch.backends.mps.is_available():
@@ -43,6 +47,7 @@ def infer_data(
     model_inputs: List,
     model_input_tokenizer_kwargs: Dict,
     generation_kwargs: Dict,
+    disable_warnings : bool = False,
     return_optimal_batch_size : bool = False,
 ) -> Union[List, float]:
     """Infer on data with a specific batch size
@@ -61,6 +66,17 @@ def infer_data(
     """
     assert isinstance(model_input_tokenizer_kwargs, Dict), f"Incorrect tokenizer kwargs input, expected Dict - {model_input_tokenizer_kwargs}"
     outputs = []
+    if any(sampling_generation_keys) in generation_kwargs:
+        sampling_generation_keys_input = sampling_generation_keys.intersection(set(generation_kwargs.keys()))
+        # https://github.com/huggingface/transformers/issues/22405
+        if 'do_sample' not in generation_kwargs:
+            if not disable_warnings:
+                warnings.warn(message = f"Invalid generation settings, set `do_sample` parameter to make parameters like {sampling_generation_keys_input} work", stacklevel=2)
+        if 'seed' not in generation_kwargs:
+            if not disable_warnings:
+                warnings.warn(message = "Generation seed not found in generation parameters, add a seed key in `generation_kwargs` to ensure reproducibility for parameter search.", stacklevel=2)
+        elif 'do_sample' in generation_kwargs:
+            seed_everything(seed = generation_kwargs.pop('seed'))
     for batch in tqdm(
         batcher(iterable=model_inputs, batch_size=batch_size),
         total=math.ceil(len(model_inputs) / batch_size),
