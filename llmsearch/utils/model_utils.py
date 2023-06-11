@@ -66,17 +66,17 @@ def infer_data(
     """
     assert isinstance(model_input_tokenizer_kwargs, Dict), f"Incorrect tokenizer kwargs input, expected Dict - {model_input_tokenizer_kwargs}"
     outputs = []
-    if any(sampling_generation_keys) in generation_kwargs:
+    if any(item in sampling_generation_keys for item in generation_kwargs.keys()):
         sampling_generation_keys_input = sampling_generation_keys.intersection(set(generation_kwargs.keys()))
         # https://github.com/huggingface/transformers/issues/22405
         if 'do_sample' not in generation_kwargs:
             if not disable_warnings:
                 warnings.warn(message = f"Invalid generation settings, set `do_sample` parameter to make parameters like {sampling_generation_keys_input} work", stacklevel=2)
-        if 'seed' not in generation_kwargs:
+        if 'generation_seed' not in generation_kwargs:
             if not disable_warnings:
-                warnings.warn(message = "Generation seed not found in generation parameters, add a seed key in `generation_kwargs` to ensure reproducibility for parameter search.", stacklevel=2)
+                warnings.warn(message = "Generation seed not found in generation parameters, add `generation_seed` in `generation_kwargs` to ensure reproducibility for parameter search.", stacklevel=2)
         elif 'do_sample' in generation_kwargs:
-            seed_everything(seed = generation_kwargs.pop('seed'))
+            seed_everything(seed = generation_kwargs.pop('generation_seed'))
     for batch in tqdm(
         batcher(iterable=model_inputs, batch_size=batch_size),
         total=math.ceil(len(model_inputs) / batch_size),
