@@ -18,6 +18,9 @@ from llmsearch.utils.mem_utils import batch
 # generation parameters required for sampling
 sampling_generation_keys = {'temperature', 'top_k', 'top_p'}
 
+def output_preproc(s : str):
+    return s.strip()
+
 def get_device():
     if torch.backends.mps.is_built() and torch.backends.mps.is_available():
         return "mps"
@@ -113,8 +116,8 @@ def batcher(iterable: Iterable, batch_size: int) -> Iterator:
     while batch := list(islice(iterator, batch_size)):
         yield batch
 
-def encoder_decoder_parser(output : str):
-    return output
+def encoder_decoder_parser(outputs : str):
+    return [output_preproc(output) for output in outputs]
 
 def decoder_parser(outputs : List[str],formatted_prompts : List[str]):
-    return [output[len(formatted_prompt)-1:] for output, formatted_prompt in zip(outputs, formatted_prompts)]
+    return [output_preproc(output[len(formatted_prompt):]) for output, formatted_prompt in zip(outputs, formatted_prompts)]

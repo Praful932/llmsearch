@@ -201,12 +201,12 @@ class Tuner:
         model_input_tokenizer_kwargs["max_length"] = self.get_tokenizer_quantile(input_list = X, tokenizer_length_percentile = self.tokenizer_length_percentile)
         return model_input_tokenizer_kwargs
 
-    def get_score(self, generation_kwargs, dataset = None):
+    def get_score(self, generation_kwargs, dataset = None) -> Tuple[float, List]:
         dataset_to_evaluate = dataset if dataset else self.dataset
         y_true = dataset_to_evaluate['X']
         y_pred = infer_data(model=self.estimator.model, tokenizer=self.tokenizer,is_encoder_decoder = self.estimator.is_encoder_decoder,batch_size=self.estimator.optimal_batch_size, device=self.device, model_inputs=dataset_to_evaluate['X'], model_input_tokenizer_kwargs=self.model_input_tokenizer_kwargs, generation_kwargs=generation_kwargs, disable_batch_size_cache=self.disable_batch_size_cache)
         score = self.score_func(y_true = y_true, y_pred = y_pred)
-        return score
+        return score, y_pred
 
     def get_tokenizer_quantile(self, input_list, tokenizer_length_percentile = None):
         """Get max length - we take it as a quantile of the input data, default - tokenizer_length_percentile"""
