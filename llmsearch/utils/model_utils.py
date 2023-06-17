@@ -92,7 +92,7 @@ def infer_data(
             sequences=output_ids, skip_special_tokens=True
         )
         if not is_encoder_decoder:
-            decoded_output = decoder_parser(outputs = outputs, formatted_prompts=batch)
+            decoded_output = decoder_parser(outputs = decoded_output, formatted_prompts=batch)
         outputs.extend(decoded_output)
     if return_optimal_batch_size:
         return outputs, batch_size
