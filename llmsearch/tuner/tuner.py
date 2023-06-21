@@ -69,6 +69,14 @@ class EstimatorWrapper(BaseEstimator):
         )
         return output
 
+    def __sklearn_clone__(self) -> BaseEstimator:
+        """Returns the same estimator
+
+        Returns:
+            BaseEstimator: self
+        """
+        return self
+
     def set_params(self, **params):
         """Set the parameters of this estimator.
 
