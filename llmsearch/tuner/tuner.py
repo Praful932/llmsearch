@@ -6,6 +6,7 @@ from operator import itemgetter
 
 import langchain
 import numpy as np
+import sklearn
 from tqdm.auto import tqdm
 from sklearn.base import BaseEstimator
 from sklearn.metrics import make_scorer
@@ -16,6 +17,12 @@ from datasets import Dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from typing import Callable
+
+def clone_with_print(estimator, *, safe=True):
+    print("Monkey Patching clone function")
+    return estimator
+
+sklearn.base.clone = clone_with_print
 
 class EstimatorWrapper(BaseEstimator):
     def __init__(
