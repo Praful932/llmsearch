@@ -18,11 +18,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from typing import Callable
 
-def clone_with_print(estimator, *, safe=True):
-    print("Monkey Patching clone function")
-    return estimator
+# def clone_with_print(estimator, *, safe=True):
+#     print("Monkey Patching clone function")
+#     return estimator
 
-sklearn.base.clone = clone_with_print
+# sklearn.base.clone = clone_with_print
 
 class EstimatorWrapper(BaseEstimator):
     def __init__(
