@@ -18,11 +18,12 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from typing import Callable
 
-# def clone_with_print(estimator, *, safe=True):
-#     print("Monkey Patching clone function")
-#     return estimator
+def clone_monkey_patch(estimator, *, safe=True):
+    assert not hasattr(estimator, 'model_generation_param_keys'), f"Hyperparameters to tune already defined - {estimator.model_generation_param_keys}"
+    return estimator
 
-# sklearn.base.clone = clone_with_print
+# monkey patch sklearn clone
+sklearn.base.clone = clone_monkey_patch
 
 class EstimatorWrapper(BaseEstimator):
     def __init__(
