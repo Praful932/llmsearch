@@ -227,7 +227,7 @@ class Tuner:
     def get_score(self, generation_kwargs, dataset = None) -> Tuple[float, List]:
         dataset_to_evaluate = dataset if dataset else self.dataset
         y_true = dataset_to_evaluate['X']
-        y_pred = infer_data(model=self.estimator.model, tokenizer=self.tokenizer,is_encoder_decoder = self.estimator.is_encoder_decoder,batch_size=self.estimator.optimal_batch_size, device=self.device, model_inputs=dataset_to_evaluate['X'], tokenizer_encoding_kwargs=self.tokenizer_encoding_kwargs, generation_kwargs=generation_kwargs, disable_batch_size_cache=self.disable_batch_size_cache)
+        y_pred = infer_data(model=self.estimator.model, tokenizer=self.tokenizer,is_encoder_decoder = self.estimator.is_encoder_decoder,batch_size=self.estimator.optimal_batch_size, device=self.device, model_inputs=dataset_to_evaluate['X'], tokenizer_encoding_kwargs=self.tokenizer_encoding_kwargs,tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs, generation_kwargs=generation_kwargs, disable_batch_size_cache=self.disable_batch_size_cache)
         score = self.score_func(y_true = y_true, y_pred = y_pred)
         return score, y_pred
 
