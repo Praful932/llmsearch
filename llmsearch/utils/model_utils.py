@@ -39,6 +39,17 @@ def seed_everything(seed):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
+"""
+do_sample - False
+these parameters should be the default value
+1. temperature
+2. top_k
+3. top_p
+
+
+by default do_sample is False, and it does greedy decoding
+"""
+
 @batch
 def infer_data(
     model: AutoModelForSeq2SeqLM,
@@ -48,8 +59,9 @@ def infer_data(
     disable_batch_size_cache : bool,
     device: str,
     model_inputs: List,
-    model_input_tokenizer_kwargs: Dict,
     generation_kwargs: Dict,
+    tokenizer_encoding_kwargs: Dict,
+    tokenizer_decoding_kwargs : Dict = {'skip_special_tokens' : True},
     disable_warnings : bool = False,
     return_optimal_batch_size : bool = False,
 ) -> Union[List, float]:
@@ -60,14 +72,14 @@ def infer_data(
         tokenizer (AutoTokenizer): tokenizer to tokenize the input
         device (str): device to run the model on
         model_inputs (List): model inputs to do inference on
-        model_input_tokenizer_kwargs (Dict): tokenizer params to tokenize the input
+        tokenizer_encoding_kwargs (Dict): tokenizer params to tokenize the input
         generation_kwargs (Dict): generation kwargs to use while generating the output
         batch_size (int): batch size for `model_inputs`
 
     Returns:
         Union[List, float]: _description_
     """
-    assert isinstance(model_input_tokenizer_kwargs, Dict), f"Incorrect tokenizer kwargs input, expected Dict - {model_input_tokenizer_kwargs}"
+    assert isinstance(tokenizer_encoding_kwargs, Dict), f"Incorrect tokenizer kwargs input, expected Dict - {tokenizer_encoding_kwargs}"
     outputs = []
     if any(item in sampling_generation_keys for item in generation_kwargs.keys()):
         sampling_generation_keys_input = sampling_generation_keys.intersection(set(generation_kwargs.keys()))
@@ -86,13 +98,13 @@ def infer_data(
     ):
         gc.collect()
         encoded_input = tokenizer(
-            text=batch, **model_input_tokenizer_kwargs, return_tensors="pt"
+            text=batch, **tokenizer_encoding_kwargs, return_tensors="pt"
         )
         input_ids =encoded_input.input_ids.to(device)
         attention_mask =encoded_input.attention_mask.to(device)
         output_ids = model.generate(inputs=input_ids,attention_mask=attention_mask, **generation_kwargs)
         decoded_output = tokenizer.batch_decode(
-            sequences=output_ids, skip_special_tokens=True
+            sequences=output_ids, **tokenizer_decoding_kwargs,
         )
         if not is_encoder_decoder:
             decoded_output = decoder_parser(outputs = decoded_output, formatted_prompts=batch)
