@@ -1,29 +1,59 @@
-import math
+"""
+Main Tuner Module containing EstimatorWrapper Class & Tuner Class for scikit-learn
+"""
+
+import inspect
 import random
 import warnings
 import collections
 from operator import itemgetter
+from typing import List, Union, Tuple, Literal, Dict, Callable
 
+import sklearn
 import langchain
 import numpy as np
-import sklearn
-from tqdm.auto import tqdm
+from datasets import Dataset
 from sklearn.base import BaseEstimator
 from sklearn.metrics import make_scorer
-from typing import List, Union, Tuple, Literal, Dict
-from llmsearch.utils.model_utils import batcher, infer_data, encoder_decoder_parser, decoder_parser
-
-from datasets import Dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from typing import Callable
+from llmsearch.utils.model_utils import infer_data
 
-def clone_monkey_patch(estimator, *, safe=True):
+import inspect
+
+def print_call_stack(n):
+    stack = inspect.stack()[1:n+1]
+    for level, frame_info in enumerate(stack[::-1]):
+        frame = frame_info.frame
+        function_name = frame.f_code.co_name
+        filename = frame.f_code.co_filename
+        line_number = frame.f_lineno
+        print(f"Level {level}: {function_name} | File: {filename}, Line: {line_number}")
+
+
+
+def clone_monkey_patch(estimator : BaseEstimator, *, safe : bool=True) -> BaseEstimator:
+    """Monkey Patch function to clone the Estimator while doing cross validation/hyperparameter search
+
+    - This functions returns the same estimator, as there are no parameters to specifically "fit"
+    - This is done to avoid OOM errors for larger models, this does not affect the hyperparameter search in any way
+    - The monkey patch will be deprecated when this package supports scikit-learn - >= 1.3.0 (atm not released)
+        - https://scikit-learn.org/dev/whats_new/v1.3.html#changelog:~:text=A%20__sklearn_clone__%20protocol%20is%20now%20available%20to%20override%20the%20default%20behavior%20of%20base.clone.
+
+    Args:
+        estimator (BaseEstimator): estimator to clone
+        safe (bool, optional): redundant parameter for now. Defaults to True.
+
+    Returns:
+        BaseEstimator: returns the same estimator
+    """
+    print(f"in monkey patch - {estimator}")
     assert not hasattr(estimator, 'model_generation_param_keys'), f"Hyperparameters to tune already defined - {estimator.model_generation_param_keys}"
+    # print_call_stack(3)
     return estimator
 
 # monkey patch sklearn clone
-sklearn.base.clone = clone_monkey_patch
+# sklearn.base.clone = clone_monkey_patch
 
 class EstimatorWrapper(BaseEstimator):
     def __init__(
@@ -46,14 +76,15 @@ class EstimatorWrapper(BaseEstimator):
         self.device = device
         self.scorer = scorer
         self.batch_size = batch_size
-        self.optimal_batch_size = batch_size
+        self._optimal_batch_size = batch_size
         self.disable_batch_size_cache = disable_batch_size_cache
         self.tokenizer_encoding_kwargs = tokenizer_encoding_kwargs
         self.tokenizer_decoding_kwargs = tokenizer_decoding_kwargs
         self.pred_function = pred_function
-        # Set generation params
+        # Set generation params, All kwargs are assumed to be generation params
         for k, v in kwargs.items():
             self.__setattr__(k, v)
+        self._model_generation_param_keys = list(kwargs.keys())
 
     def fit(self, *args, **kwargs):
         self.is_fitted_ = True
@@ -63,7 +94,7 @@ class EstimatorWrapper(BaseEstimator):
         if self.pred_function:
             return self.pred_function(X)
         model_generation_params = {
-            attr: getattr(self, attr) for attr in self.model_generation_param_keys
+            attr: getattr(self, attr) for attr in self._model_generation_param_keys
         }
         output, self.optimal_batch_size = infer_data(
             model=self.model,
@@ -82,12 +113,40 @@ class EstimatorWrapper(BaseEstimator):
 
     def __sklearn_clone__(self) -> BaseEstimator:
         """Returns the same estimator
-        Only supported in sklearn >= 1.3
+        Only relevant from sklearn >= 1.3
 
         Returns:
             BaseEstimator: self
         """
+        print("calling overriden clone")
         return self
+
+    def get_params(self, deep = True):
+        """
+        Get parameters for this estimator.
+
+        Parameters
+        ----------
+        deep : bool, default=True
+            If True, will return the parameters for this estimator and
+            contained subobjects that are estimators.
+
+        Returns
+        -------
+        params : dict
+            Parameter names mapped to their values.
+        """
+        out = dict()
+        for key, value in vars(self).items():
+            if not (key.startswith("__") or key.startswith("_")):
+                # print(f'in get - {key} - {value}')
+                out[key] = value
+
+        # if hasattr(self, 'model_generation_param_keys'):
+        #     for key in self.model_generation_param_keys:
+        #         value = getattr(self, key)
+        #         out[key] = value
+        return out
 
     def set_params(self, **params):
         """Set the parameters of this estimator.
@@ -107,45 +166,15 @@ class EstimatorWrapper(BaseEstimator):
         self : estimator instance
             Estimator instance.
         """
+        # print("in set params")
         if not params:
             # Simple optimization to gain speed (inspect is slow)
             return self
-        valid_params = self.get_params(deep=True)
 
-        nested_params = collections.defaultdict(dict)  # grouped by prefix
-        self.model_generation_param_keys = params.keys()
+        self._model_generation_param_keys = list(params.keys())
+
         for key, value in params.items():
-            key, delim, sub_key = key.partition("__")
-            if delim:
-                nested_params[key][sub_key] = value
-            else:
-                setattr(self, key, value)
-                valid_params[key] = value
-
-        for key, sub_params in nested_params.items():
-            # TODO(1.4): remove specific handling of "base_estimator".
-            # The "base_estimator" key is special. It was deprecated and
-            # renamed to "estimator" for several estimators. This means we
-            # need to translate it here and set sub-parameters on "estimator",
-            # but only if the user did not explicitly set a value for
-            # "base_estimator".
-            if (
-                key == "base_estimator"
-                and valid_params[key] == "deprecated"
-                and self.__module__.startswith("sklearn.")
-            ):
-                warnings.warn(
-                    (
-                        f"Parameter 'base_estimator' of {self.__class__.__name__} is"
-                        " deprecated in favor of 'estimator'. See"
-                        f" {self.__class__.__name__}'s docstring for more details."
-                    ),
-                    FutureWarning,
-                    stacklevel=2,
-                )
-                key = "estimator"
-
-            valid_params[key].set_params(**sub_params)
+            setattr(self, key, value)
 
         return self
 

@@ -69,7 +69,8 @@ def batch(func):
             if not cache.is_empty():
                 # Get cached batch size if present
                 stacktrace = get_traceback(ignore_first=20, stack_context=10)
-                total_available_gpu_memory = get_gpu_information()[2]
+                gpu_info = get_gpu_information()
+                total_available_gpu_memory = gpu_info[2] if gpu_info else gpu_info
                 total_available_ram_memory = get_total_available_ram()
                 batch_size = cache.get_value(initial_value=batch_size, stacktrace=stacktrace,total_available_gpu_memory=total_available_gpu_memory, total_available_ram_memory=total_available_ram_memory)
         while True:
@@ -79,7 +80,8 @@ def batch(func):
                 gc_cuda()
                 if not disable_batch_size_cache:
                     stacktrace = get_traceback(ignore_first=20, stack_context=10)
-                    total_available_gpu_memory = get_gpu_information()[2]
+                    gpu_info = get_gpu_information()
+                    total_available_gpu_memory = gpu_info[2] if gpu_info else gpu_info
                     total_available_ram_memory = get_total_available_ram()
                     print(f"Total available ram memory - {total_available_ram_memory}, Total available gpu memory - {total_available_gpu_memory}\n")
                     # Set value for next iteration with the input hash
@@ -125,37 +127,40 @@ def is_out_of_cpu_memory(exception):
     )
 
 def get_gpu_information():
-    pynvml.nvmlInit()
     try:
-        num_gpus = pynvml.nvmlDeviceGetCount()
+        pynvml.nvmlInit()
+        try:
+            num_gpus = pynvml.nvmlDeviceGetCount()
 
-        total_available_gpus = 0
-        total_occupied_memory = 0
-        total_memory = 0
+            total_available_gpus = 0
+            total_occupied_memory = 0
+            total_memory = 0
 
-        for index in range(num_gpus):
-            handle = pynvml.nvmlDeviceGetHandleByIndex(index)
-            memory_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+            for index in range(num_gpus):
+                handle = pynvml.nvmlDeviceGetHandleByIndex(index)
+                memory_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
 
-            total_available_gpus += 1
-            total_occupied_memory += memory_info.used
-            total_memory += memory_info.total
+                total_available_gpus += 1
+                total_occupied_memory += memory_info.used
+                total_memory += memory_info.total
 
-        # Round occupied memory to the nearest GB
-        total_occupied_memory_gb = math.ceil(total_occupied_memory / (1024**3))
+            # Round occupied memory to the nearest GB
+            total_occupied_memory_gb = math.ceil(total_occupied_memory / (1024**3))
 
-        # Round total memory to the nearest GB
-        total_memory_gb = math.ceil(total_memory / (1024**3))
+            # Round total memory to the nearest GB
+            total_memory_gb = math.ceil(total_memory / (1024**3))
 
-        total_available_memory = total_memory_gb - total_occupied_memory_gb
+            total_available_memory = total_memory_gb - total_occupied_memory_gb
 
-        return total_available_gpus, total_occupied_memory_gb, total_available_memory
-    except Exception:
-        exc_traceback = traceback.format_exc()
-        print(f"Unable to get details of gpu - {exc_traceback}")
-        raise
-    finally:
-        pynvml.nvmlShutdown()
+            return total_available_gpus, total_occupied_memory_gb, total_available_memory
+        except Exception:
+            exc_traceback = traceback.format_exc()
+            print(f"Unable to get details of gpu - {exc_traceback}")
+            raise
+        finally:
+            pynvml.nvmlShutdown()
+    except:
+        return None
 
 def get_total_available_ram():
     memory = psutil.virtual_memory()
