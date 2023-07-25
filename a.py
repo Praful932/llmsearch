@@ -1,9 +1,8 @@
-import b import foo
+from llmsearch.utils.mem_utils import get_traceback
 
-class A:
-    def __init__(self):
-        self.val = 2
 
-    def getval(self):
-        return foo()
+def foo():
+    print(get_traceback())
 
+
+foo()
