@@ -1,5 +1,5 @@
 """
-Main Tuner Module containing EstimatorWrapper Class & Tuner Class for scikit-learn
+Main Tuner Module containing LLMEstimatorWrapper Class & Tuner Class for scikit-learn
 """
 
 import random
@@ -17,7 +17,7 @@ from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokeni
 from llmsearch.utils.model_utils import infer_data
 
 
-class EstimatorWrapper(BaseEstimator):
+class LLMEstimatorWrapper(BaseEstimator):
     """Estimator Wrapper Class that abstracts a Model for compatibility with scikit-learn"""
 
     def __init__(
@@ -41,12 +41,12 @@ class EstimatorWrapper(BaseEstimator):
             tokenizer (AutoTokenizer): tokenizer for the input
             is_encoder_decoder (bool): whether the model is an encoder-decoder model, `False` if not
             device (str): device to run inference on, eg - `cuda:0`
-            scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in  list of ground truth and predictions, and returns a single value as metric
-            batch_size (int): batch_size to run inference with, this gets dynamically reduced if the inference function encounters OOM errors
-            disable_batch_size_cache (bool): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised
+            scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in ground truth and predictions are returns a metric to optimize on
+            batch_size (int): batch_size to run inference with, this gets dynamically halfed if the inference function encounters OOM errors
+            disable_batch_size_cache (bool): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised by the inference function
             tokenizer_encoding_kwargs (Dict): Encoding arguments for the `tokenizer`
             tokenizer_decoding_kwargs (Dict, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`
-            pred_function (Union[Callable, None], optional): Override Prediction Function `.predict` is called. The overriden function should have the signature - `(estimator : EstimatorWrapper, model_inputs : List, generation_params : Dict) -> outputs : List` & should return a list of outputs . Defaults to None.
+            pred_function (Union[Callable, None], optional): Override Prediction Function `.predict` is called. The overriden function should have the signature - `(estimator : LLMEstimatorWrapper, model_inputs : List, generation_params : Dict) -> outputs : List` & should return a list of outputs which can be directly consumed by `scorer` as `y_pred`. Defaults to None.
 
         - All `kwargs` are assumed to be generation params and used when doing Hyperparameter search
         """
@@ -56,7 +56,7 @@ class EstimatorWrapper(BaseEstimator):
         self.device = device
         self.scorer = scorer
         self.batch_size = batch_size
-        # stores the optimal batch size for the input if disable_batch_size_cache is `False`
+        # stores the optimal batch size for a particular configuration if disable_batch_size_cache is `False`
         self._optimal_batch_size = batch_size
         self.disable_batch_size_cache = disable_batch_size_cache
         self.tokenizer_encoding_kwargs = tokenizer_encoding_kwargs
@@ -83,7 +83,7 @@ class EstimatorWrapper(BaseEstimator):
         return self._model_generation_param_keys
 
     def fit(self, *args, **kwargs) -> BaseEstimator:
-        """Dummy fit function which does not actually fit anything
+        """Dummy fit function which does not actually do anything :)
 
         Returns:
             self: returns self
@@ -100,7 +100,7 @@ class EstimatorWrapper(BaseEstimator):
         Returns:
             List: output produced by the model for each sample in `X`
         """
-        # Gets the value of generation params using which prediction will run
+        # Gets the value of generation params using which prediction will run, when running any kind of search this is set via `.set_params`
         model_generation_params = {
             attr: getattr(self, attr) for attr in self._model_generation_param_keys
         }
@@ -117,8 +117,8 @@ class EstimatorWrapper(BaseEstimator):
             device=self.device,
             model_inputs=X,
             tokenizer_encoding_kwargs=self.tokenizer_encoding_kwargs,
-            tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
             generation_kwargs=model_generation_params,
+            tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
             return_optimal_batch_size=True,
         )
         return output
@@ -129,6 +129,8 @@ class EstimatorWrapper(BaseEstimator):
 
         - This functions returns the same estimator, as there are no parameters to specifically "fit"
         - This is done to avoid OOM errors for larger models and prevent creating a copy of the model weights, this does not affect the hyperparameter search in any way
+
+        TODO : Is the native clone called still?
 
         Returns:
             BaseEstimator: self
@@ -156,6 +158,7 @@ class EstimatorWrapper(BaseEstimator):
         """
         out = dict()
         for key, value in vars(self).items():
+            # Ignore any private/protected variables
             if not (key.startswith("__") or key.startswith("_")):
                 out[key] = value
         return out
@@ -213,19 +216,19 @@ class Tuner:
         Args:
             model (Union[AutoModelForCausalLM,AutoModelForSeq2SeqLM]): model that has `.generate` method
             tokenizer (AutoTokenizer): tokenizer for the input
-            prompt_template (langchain.BasePromptTemplate): prompt template that will map to `dataset`
-            dataset (Union[Dataset, Dict]): The dataset, The processed version of the input and output are stored with keyd `X` & `y` in `dataset` of the object
+            prompt_template (langchain.BasePromptTemplate): prompt template that will apply to the input(`X`) of the model
+            dataset (Union[Dataset, Dict]): The dataset, The processed version(after applying the prompt template) of the input and output are stored with key `X` & `y` in `dataset` of the object
             column_mapping (Dict): A mapping from the column names in the `dataset` to the column names expected by the model. The expected format is a dictionary with the following format: {"text_column_name": "X", "label_column_name: "y"}.
             device (str): device to run inference on, eg - `cuda:0`
             is_encoder_decoder (bool): whether the model is an encoder-decoder model, `False` if not
-            scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in  list of ground truth and predictions, and returns a single value as metric
+            scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in ground truth and predictions are returns a metric to optimize on
             greater_is_better (bool, optional): scorer is a scoring(greater is better) or a loss function(lower is better) . Defaults to True.
             seed (int, optional): seed for reproducibility. Defaults to 42.
             tokenizer_encoding_kwargs (Dict, optional): Encoding arguments for the `tokenizer`. If `None` it's initialized using the `get_default_input_tokenizer_kwargs` method. Defaults to None.
             tokenizer_decoding_kwargs (Dict, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
-            batch_size (int, optional): batch_size to run inference with, this gets dynamically reduced if the inference function encounters OOM errors. Defaults to 32.
-            disable_batch_size_cache (bool, optional): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised. Defaults to False.
-            sample_ratio (float, optional): Sampling Ratio of `dataset` to find the ideal values for padding and truncation. Argument is invalid if `tokenizer_encoding_kwargs` is not `None`. Defaults to 0.3.
+            batch_size (int, optional): batch_size to run inference with, this gets dynamically halfed if the inference function encounters OOM errors. Defaults to 32.
+            disable_batch_size_cache (bool, optional): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised by the inference function. Defaults to False.
+            sample_ratio (float, optional): Sampling Ratio of `dataset` to find the ideal values for padding and truncation to batch inputs to the model. Argument is invalid if `tokenizer_encoding_kwargs` is not `None`. Defaults to 0.3.
             tokenizer_max_length_quantile (float, optional): quantile at which the value for `max_length` will be computed using the initialized dataset. Defaults to 0.9.
         """
         self.tokenizer = tokenizer
@@ -259,7 +262,7 @@ class Tuner:
             else {"skip_special_tokens": True}
         )
         # Initialize the model estimator
-        self.estimator = EstimatorWrapper(
+        self.estimator = LLMEstimatorWrapper(
             model=model,
             tokenizer=self.tokenizer,
             is_encoder_decoder=is_encoder_decoder,
@@ -331,12 +334,12 @@ class Tuner:
         score = self.score_func(y_true=y_true, y_pred=y_pred)
         return score, y_pred
 
-    def get_value_at_quantile(self, input_list: List, quantile: float = None) -> int:
+    def get_value_at_quantile(self, input_list: List, quantile: float) -> int:
         """Get value at a specific quantile
 
         Args:
             input_list (List): list of str on which to run the encoding of the `tokenizer`
-            quantile (Union[float, None], optional): quantile on which to find the value on. Defaults to None.
+            quantile (float): quantile on which to find the value on.
 
         Returns:
             int: rounded value at quantile

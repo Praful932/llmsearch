@@ -1,6 +1,6 @@
 """
 Inspired from toma - https://github.com/BlackHC/
-Module Memory related utils to do friendly inference :)
+Memory related utils to do friendly inference :)
 """
 
 import gc
@@ -62,6 +62,7 @@ class Cache:
             float: `current_value` if hash_key is not present, else returns the hashed key
         """
         hash_key = (stacktrace, total_available_gpu_memory, total_available_ram_memory)
+        # Checks if current configuration in cache
         if hash_key in self.cache:
             val = self.cache[hash_key]
             return val
@@ -80,7 +81,7 @@ class Cache:
         self.cache = {}
 
 
-def get_traceback(ignore_first: int = 0, stack_context: int = 5) -> Tuple:
+def get_traceback(ignore_first: int = 0, stack_context: int = 5) -> Tuple[Tuple]:
     """Get traceback from first to latest call
 
     Args:
@@ -88,7 +89,7 @@ def get_traceback(ignore_first: int = 0, stack_context: int = 5) -> Tuple:
         stack_context (int, optional): context for traceback. Defaults to 5.
 
     Returns:
-        Tuple: _description_
+        Tuple[Tuple]: Tuples of Function call and code
     """
     stack = inspect.stack(context=1)[ignore_first : ignore_first + stack_context]
     # Tuple of function and calling code
@@ -100,7 +101,7 @@ def get_traceback(ignore_first: int = 0, stack_context: int = 5) -> Tuple:
 cache = Cache()
 
 
-def batch_without_oom_error(func):
+def batch_without_oom_error(func : callable):
     """Perform Inference on a batch of samples by dividing the batch_size by 2 each time whenever OOM error happens
     - Function should have a `batch_size` and `disable_batch_size_cache` parameter
 
@@ -110,20 +111,26 @@ def batch_without_oom_error(func):
 
     @wraps(func)
     def inner_wrapper(*args, batch_size: int, disable_batch_size_cache: bool, **kwargs):
-        """Inner wrapper function"""
+        """When cache is turned on (`disable_batch_size_cache` - True), a cached batch_size can be used based on the configuration
 
-        # if batch size cache is to be disable
+        Args:
+            batch_size (int): initial batch size
+            disable_batch_size_cache (bool): setting this to `True` forces the inference to happen using `batch_size`
+
+        """
+
+        # if batch size cache is to be disabled
         if disable_batch_size_cache:
             # Empty cache
             if not cache.is_empty():
                 cache.empty_cache()
         else:
             if not cache.is_empty():
-                # Get cached batch size if present
                 stacktrace = get_traceback(ignore_first=20, stack_context=10)
                 gpu_info = get_gpu_information()
                 total_available_gpu_memory = gpu_info[2] if gpu_info else gpu_info
                 total_available_ram_memory = get_total_available_ram()
+                # Get cached batch size if present
                 batch_size = cache.get_value(
                     current_value=batch_size,
                     stacktrace=stacktrace,
@@ -182,7 +189,7 @@ def gc_cuda():
 
 
 def should_reduce_batch_size(exception):
-    """Checks whether batch size be reduced or not"""
+    """Checks whether batch size can be reduced or not"""
     return (
         is_cuda_out_of_memory(exception)
         or is_cudnn_snafu(exception)
@@ -218,7 +225,7 @@ def is_out_of_cpu_memory(exception):
 
 
 def get_gpu_information() -> Union[None, Tuple[int, float, float]]:
-    """Get CUDA gpu related info
+    """Get CUDA gpu related info if gpu exist
 
     Returns:
         Union[None, Tuple[int, float, float]]: total available gpus, total occupied memory gb, total available gpu memeory

@@ -24,7 +24,7 @@ def print_call_stack(n: int):
 def clone_monkey_patch(
     estimator: BaseEstimator, *, safe: bool = True
 ) -> BaseEstimator:  # pylint: disable=unused-argument
-    """Monkey Patch function to clone the Estimator while doing cross validation/hyperparameter search
+    """Deprecated Monkey Patch function to clone the Estimator while doing cross validation/hyperparameter search
 
     Usable in <= 1.3 versions of scikit-learn versions
 

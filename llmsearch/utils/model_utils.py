@@ -6,19 +6,19 @@ import math
 import random
 import warnings
 from itertools import islice
-from typing import List, Dict, Union, Iterable, Iterator
+from typing import List, Dict, Union, Tuple, Iterable, Iterator
 
 import torch
 import numpy as np
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from llmsearch.utils.mem_utils import batch_without_oom_error
+from llmsearch.utils.mem_utils import batch_without_oom_error, gc_cuda
 
 # generation parameters required for sampling
 sampling_generation_keys = {"temperature", "top_k", "top_p"}
 
 
-def output_preproc(s: str):
+def strip_output(s: str):
     """Just calls .strip nothing else"""
     return s.strip()
 
@@ -62,7 +62,8 @@ def infer_data(
     tokenizer_decoding_kwargs: Dict = None,
     disable_warnings: bool = False,
     return_optimal_batch_size: bool = False,
-) -> Union[List, int]:
+    output_prepoc : callable = strip_output,
+) -> Union[Tuple[List, int], List]:
     """Infer on data with a specific batch size
 
     Args:
@@ -75,21 +76,21 @@ def infer_data(
         tokenizer_encoding_kwargs (Dict): Encoding arguments for the `tokenizer`
         generation_kwargs (Dict, optional): generation kwargs to use while generating the output. Defaults to None.
         tokenizer_decoding_kwargs (_type_, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
-        disable_warnings (bool, optional): _description_. Defaults to False.
-        return_optimal_batch_size (bool, optional): _description_. Defaults to False.
+        disable_warnings (bool, optional): disables warnings related to generation parameters. Defaults to False.
+        return_optimal_batch_size (bool, optional): if the function should return the optimal batch size found, useful for caching when performing cross validation. Defaults to False.
+        output_prepoc (Callable, optional): Prepoc to run on the completion, by default strips the output. Note that this is applied on the completion. Defaults to False.
 
     Returns:
-        Union[List, int]: outputs, best batch size
+        Union[Tuple[List, int], List]: outputs and or best batch size
     """
     assert isinstance(
         tokenizer_encoding_kwargs, Dict
     ), f"Incorrect tokenizer kwargs input, expected Dict - {tokenizer_encoding_kwargs}"
 
-
     tokenizer_decoding_kwargs = (
-            tokenizer_decoding_kwargs
-            if tokenizer_decoding_kwargs
-            else {"skip_special_tokens": True}
+        tokenizer_decoding_kwargs
+        if tokenizer_decoding_kwargs
+        else {"skip_special_tokens": True}
     )
 
     outputs = []
@@ -120,6 +121,7 @@ def infer_data(
         total=math.ceil(len(model_inputs) / batch_size),
     ):
         gc.collect()
+        gc_cuda()
         encoded_input = tokenizer(
             text=batch, **tokenizer_encoding_kwargs, return_tensors="pt"
         )
@@ -132,10 +134,13 @@ def infer_data(
             sequences=output_ids,
             **tokenizer_decoding_kwargs,
         )
+        # remove prompt
         if not is_encoder_decoder:
             decoded_output = decoder_parser(
-                outputs=decoded_output, formatted_prompts=batch
+                outputs=decoded_output, formatted_prompts=batch, prepoc= output_prepoc
             )
+        else:
+            decoded_output = encoder_decoder_parser(outputs=decoded_output, prepoc=output_prepoc)
         outputs.extend(decoded_output)
     if return_optimal_batch_size:
         return outputs, batch_size
@@ -157,12 +162,14 @@ def batcher(iterable: Iterable, batch_size: int) -> Iterator:
         yield batch
 
 
-def encoder_decoder_parser(outputs: str):
-    return [output_preproc(output) for output in outputs]
+def encoder_decoder_parser(outputs: str, prepoc : callable):
+    """Applies the prepoc function on the completion"""
+    return [prepoc(output) for output in outputs]
 
 
-def decoder_parser(outputs: List[str], formatted_prompts: List[str]):
+def decoder_parser(outputs: List[str], formatted_prompts: List[str], prepoc : callable):
+    """Removes the promot from the text and calls prepoc on the completion"""
     return [
-        output_preproc(output[len(formatted_prompt) :])
+        prepoc(output[len(formatted_prompt) :])
         for output, formatted_prompt in zip(outputs, formatted_prompts)
     ]
