@@ -71,6 +71,8 @@ class LLMEstimatorWrapper(BaseEstimator):
             self.__setattr__(k, v)
         # Stores the names of the keys passed in
         self._model_generation_param_keys = list(kwargs.keys())
+        # TODO : Add logging
+        # print(f"Initializing new estimator with generation keys - {kwargs}\n\n")
 
     @property
     def optimal_batch_size(self):
@@ -135,10 +137,12 @@ class LLMEstimatorWrapper(BaseEstimator):
         Returns:
             BaseEstimator: self
         """
-        # While cloning no generation parameters should be set
-        assert not hasattr(
-            self, "_model_generation_param_keys"
-        ), f"Hyperparameters to tune already defined - {self._model_generation_param_keys}"
+        # TODO : add logging
+        # print(f"Before cloning")
+        # _ = {
+        #     attr: getattr(self, attr) for attr in self._model_generation_param_keys
+        # }
+        # print(_,'\n\n')
         return self
 
     def get_params(self, deep: bool = True):
@@ -186,6 +190,13 @@ class LLMEstimatorWrapper(BaseEstimator):
         for key, value in params.items():
             setattr(self, key, value)
 
+        # TODO : add logigng
+        # print("After setting")
+        # _ = {
+        #     attr: getattr(self, attr) for attr in self._model_generation_param_keys
+        # }
+        # print(_,'\n\n')
+
         return self
 
 
@@ -218,7 +229,7 @@ class Tuner:
             tokenizer (AutoTokenizer): tokenizer for the input
             prompt_template (langchain.BasePromptTemplate): prompt template that will apply to the input(`X`) of the model
             dataset (Union[Dataset, Dict]): The dataset, The processed version(after applying the prompt template) of the input and output are stored with key `X` & `y` in `dataset` of the object
-            column_mapping (Dict): A mapping from the column names in the `dataset` to the column names expected by the model. The expected format is a dictionary with the following format: {"text_column_name": "X", "label_column_name: "y"}.
+            column_mapping (Dict): A mapping from the column names in the `dataset` to the column names expected by the model. The expected format is a dictionary with the following format: {"text_column_name": "X", "label_column_name": "y"}.
             device (str): device to run inference on, eg - `cuda:0`
             is_encoder_decoder (bool): whether the model is an encoder-decoder model, `False` if not
             scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in ground truth and predictions are returns a metric to optimize on
@@ -237,8 +248,8 @@ class Tuner:
         # Map prompt template to dataset
         self.dataset = dataset.map(
             lambda sample: {
-                "X": self.prompt_template.format(X=column_mapping["text_column_name"]),
-                "y": column_mapping["label_column_name"],
+                "X": self.prompt_template.format(X=sample[column_mapping["text_column_name"]]),
+                "y": sample[column_mapping["label_column_name"]],
             }
         )
         self.device = device

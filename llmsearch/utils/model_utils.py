@@ -93,6 +93,9 @@ def infer_data(
         else {"skip_special_tokens": True}
     )
 
+    # TODO : add logging
+    # print(f"Performing inference using - {generation_kwargs}\n\n")
+
     outputs = []
 
     # TODO : Make this a separate function
