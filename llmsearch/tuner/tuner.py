@@ -2,6 +2,7 @@
 Main Tuner Module containing LLMEstimatorWrapper Class & Tuner Class for scikit-learn
 """
 
+import time
 import random
 from operator import itemgetter
 from typing import List, Union, Tuple, Dict, Callable
@@ -15,6 +16,10 @@ from sklearn.metrics import make_scorer
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
 
 from llmsearch.utils.model_utils import infer_data
+
+from llmsearch.utils.logging_utils import get_logger
+
+logger = get_logger(__name__)
 
 
 class LLMEstimatorWrapper(BaseEstimator):
@@ -31,6 +36,7 @@ class LLMEstimatorWrapper(BaseEstimator):
         disable_batch_size_cache: bool,
         tokenizer_encoding_kwargs: Dict,
         tokenizer_decoding_kwargs: Dict = None,
+        disable_generation_param_checks: bool = False,
         pred_function: Union[Callable, None] = None,
         **kwargs,
     ):
@@ -46,6 +52,7 @@ class LLMEstimatorWrapper(BaseEstimator):
             disable_batch_size_cache (bool): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised by the inference function
             tokenizer_encoding_kwargs (Dict): Encoding arguments for the `tokenizer`
             tokenizer_decoding_kwargs (Dict, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`
+            disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this check does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.
             pred_function (Union[Callable, None], optional): Override Prediction Function `.predict` is called. The overriden function should have the signature - `(estimator : LLMEstimatorWrapper, model_inputs : List, generation_params : Dict) -> outputs : List` & should return a list of outputs which can be directly consumed by `scorer` as `y_pred`. Defaults to None.
 
         - All `kwargs` are assumed to be generation params and used when doing Hyperparameter search
@@ -66,13 +73,15 @@ class LLMEstimatorWrapper(BaseEstimator):
             else {"skip_special_tokens": True}
         )
         self.pred_function = pred_function
+        self.disable_generation_param_checks = disable_generation_param_checks
         # Set generation params, All kwargs are assumed to be generation params
         for k, v in kwargs.items():
             self.__setattr__(k, v)
         # Stores the names of the keys passed in
         self._model_generation_param_keys = list(kwargs.keys())
-        # TODO : Add logging
-        # print(f"Initializing new estimator with generation keys - {kwargs}\n\n")
+        logger.debug(
+            "Initializing new estimator with generation parameters - %s", kwargs
+        )
 
     @property
     def optimal_batch_size(self):
@@ -120,6 +129,7 @@ class LLMEstimatorWrapper(BaseEstimator):
             model_inputs=X,
             tokenizer_encoding_kwargs=self.tokenizer_encoding_kwargs,
             generation_kwargs=model_generation_params,
+            disable_generation_param_checks=self.disable_generation_param_checks,
             tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
             return_optimal_batch_size=True,
         )
@@ -132,17 +142,11 @@ class LLMEstimatorWrapper(BaseEstimator):
         - This functions returns the same estimator, as there are no parameters to specifically "fit"
         - This is done to avoid OOM errors for larger models and prevent creating a copy of the model weights, this does not affect the hyperparameter search in any way
 
-        TODO : Is the native clone called still?
-
         Returns:
             BaseEstimator: self
         """
-        # TODO : add logging
-        # print(f"Before cloning")
-        # _ = {
-        #     attr: getattr(self, attr) for attr in self._model_generation_param_keys
-        # }
-        # print(_,'\n\n')
+        _ = self._get_model_generation_params()
+        logger.debug("Attributes before cloning estimator - %s", _)
         return self
 
     def get_params(self, deep: bool = True):
@@ -190,14 +194,15 @@ class LLMEstimatorWrapper(BaseEstimator):
         for key, value in params.items():
             setattr(self, key, value)
 
-        # TODO : add logigng
-        # print("After setting")
-        # _ = {
-        #     attr: getattr(self, attr) for attr in self._model_generation_param_keys
-        # }
-        # print(_,'\n\n')
-
+        _ = self._get_model_generation_params()
+        logger.debug("Attributes after setting new parameters - %s", _)
         return self
+
+    def _get_model_generation_params(self):
+        model_generation_params = {
+            attr: getattr(self, attr) for attr in self._model_generation_param_keys
+        }
+        return model_generation_params
 
 
 class Tuner:
@@ -219,6 +224,7 @@ class Tuner:
         tokenizer_decoding_kwargs: Dict = None,
         batch_size: int = 32,
         disable_batch_size_cache: bool = False,
+        disable_generation_param_checks: bool = False,
         sample_ratio: float = 0.3,
         tokenizer_max_length_quantile: float = 0.9,
     ):
@@ -239,6 +245,7 @@ class Tuner:
             tokenizer_decoding_kwargs (Dict, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
             batch_size (int, optional): batch_size to run inference with, this gets dynamically halfed if the inference function encounters OOM errors. Defaults to 32.
             disable_batch_size_cache (bool, optional): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised by the inference function. Defaults to False.
+            disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this check does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.  Defaults to False.
             sample_ratio (float, optional): Sampling Ratio of `dataset` to find the ideal values for padding and truncation to batch inputs to the model. Argument is invalid if `tokenizer_encoding_kwargs` is not `None`. Defaults to 0.3.
             tokenizer_max_length_quantile (float, optional): quantile at which the value for `max_length` will be computed using the initialized dataset. Defaults to 0.9.
         """
@@ -248,7 +255,9 @@ class Tuner:
         # Map prompt template to dataset
         self.dataset = dataset.map(
             lambda sample: {
-                "X": self.prompt_template.format(X=sample[column_mapping["text_column_name"]]),
+                "X": self.prompt_template.format(
+                    X=sample[column_mapping["text_column_name"]]
+                ),
                 "y": sample[column_mapping["label_column_name"]],
             }
         )
@@ -260,6 +269,7 @@ class Tuner:
         )
         self.seed = seed
         self.disable_batch_size_cache = disable_batch_size_cache
+        self.disable_generation_param_checks = disable_generation_param_checks
         self.sample_ratio = sample_ratio
         self.tokenizer_max_length_quantile = tokenizer_max_length_quantile
         # Get encoding arguments for the `tokenizer` if not passed in
@@ -341,6 +351,7 @@ class Tuner:
             tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
             generation_kwargs=generation_kwargs,
             disable_batch_size_cache=self.disable_batch_size_cache,
+            disable_generation_param_checks=self.disable_generation_param_checks,
         )
         score = self.score_func(y_true=y_true, y_pred=y_pred)
         return score, y_pred

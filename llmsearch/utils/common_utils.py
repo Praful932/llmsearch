@@ -44,3 +44,18 @@ def clone_monkey_patch(
         estimator, "model_generation_param_keys"
     ), f"Hyperparameters to tune already defined - {estimator.model_generation_param_keys}"
     return estimator
+
+
+def get_default_values_for_method(method, param_list):
+    signature = inspect.signature(method)
+    parameters = signature.parameters
+    print(parameters)
+    default_values = {}
+
+    for param_name in param_list:
+        if param_name in parameters:
+            param = parameters[param_name]
+            if param.default != inspect.Parameter.empty:
+                default_values[param_name] = param.default
+
+    return default_values

@@ -12,10 +12,12 @@ import torch
 import numpy as np
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+from llmsearch.utils.gen_utils import identify_and_validate_gen_params
+from llmsearch.utils.logging_utils import get_logger
 from llmsearch.utils.mem_utils import batch_without_oom_error, gc_cuda
 
-# generation parameters required for sampling
-sampling_generation_keys = {"temperature", "top_k", "top_p"}
+logger = get_logger(__name__)
 
 
 def strip_output(s: str):
@@ -59,10 +61,10 @@ def infer_data(
     model_inputs: List,
     tokenizer_encoding_kwargs: Dict,
     generation_kwargs: Dict = None,
+    disable_generation_param_checks: bool = False,
     tokenizer_decoding_kwargs: Dict = None,
-    disable_warnings: bool = False,
     return_optimal_batch_size: bool = False,
-    output_prepoc : callable = strip_output,
+    output_prepoc: callable = strip_output,
 ) -> Union[Tuple[List, int], List]:
     """Infer on data with a specific batch size
 
@@ -75,8 +77,8 @@ def infer_data(
         model_inputs (List): model inputs to do inference on
         tokenizer_encoding_kwargs (Dict): Encoding arguments for the `tokenizer`
         generation_kwargs (Dict, optional): generation kwargs to use while generating the output. Defaults to None.
+        disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this check does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.
         tokenizer_decoding_kwargs (_type_, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
-        disable_warnings (bool, optional): disables warnings related to generation parameters. Defaults to False.
         return_optimal_batch_size (bool, optional): if the function should return the optimal batch size found, useful for caching when performing cross validation. Defaults to False.
         output_prepoc (Callable, optional): Prepoc to run on the completion, by default strips the output. Note that this is applied on the completion. Defaults to False.
 
@@ -93,31 +95,14 @@ def infer_data(
         else {"skip_special_tokens": True}
     )
 
-    # TODO : add logging
-    # print(f"Performing inference using - {generation_kwargs}\n\n")
-
     outputs = []
 
-    # TODO : Make this a separate function
-    if any(item in sampling_generation_keys for item in generation_kwargs.keys()):
-        sampling_generation_keys_input = sampling_generation_keys.intersection(
-            set(generation_kwargs.keys())
-        )
-        # https://github.com/huggingface/transformers/issues/22405
-        if "do_sample" not in generation_kwargs:
-            if not disable_warnings:
-                warnings.warn(
-                    message=f"Invalid generation settings, set `do_sample` parameter to make parameters like {sampling_generation_keys_input} work",
-                    stacklevel=3,
-                )
-        if "generation_seed" not in generation_kwargs:
-            if not disable_warnings:
-                warnings.warn(
-                    message="Generation seed not found in generation parameters, add `generation_seed` in `generation_kwargs` to ensure reproducibility for parameter search.",
-                    stacklevel=3,
-                )
-        elif "do_sample" in generation_kwargs:
-            seed_everything(seed=generation_kwargs.pop("generation_seed"))
+    if not disable_generation_param_checks:
+        generation_type = identify_and_validate_gen_params(gen_params=generation_kwargs)
+        logger.info("Detected generation type - %s", generation_type)
+
+    if "generation_seed" in generation_kwargs:
+        seed_everything(seed=generation_kwargs.pop("generation_seed"))
 
     for batch in tqdm(
         batcher(iterable=model_inputs, batch_size=batch_size),
@@ -140,10 +125,12 @@ def infer_data(
         # remove prompt
         if not is_encoder_decoder:
             decoded_output = decoder_parser(
-                outputs=decoded_output, formatted_prompts=batch, prepoc= output_prepoc
+                outputs=decoded_output, formatted_prompts=batch, prepoc=output_prepoc
             )
         else:
-            decoded_output = encoder_decoder_parser(outputs=decoded_output, prepoc=output_prepoc)
+            decoded_output = encoder_decoder_parser(
+                outputs=decoded_output, prepoc=output_prepoc
+            )
         outputs.extend(decoded_output)
     if return_optimal_batch_size:
         return outputs, batch_size
@@ -165,13 +152,13 @@ def batcher(iterable: Iterable, batch_size: int) -> Iterator:
         yield batch
 
 
-def encoder_decoder_parser(outputs: str, prepoc : callable):
+def encoder_decoder_parser(outputs: str, prepoc: callable):
     """Applies the prepoc function on the completion"""
     return [prepoc(output) for output in outputs]
 
 
-def decoder_parser(outputs: List[str], formatted_prompts: List[str], prepoc : callable):
-    """Removes the promot from the text and calls prepoc on the completion"""
+def decoder_parser(outputs: List[str], formatted_prompts: List[str], prepoc: callable):
+    """Removes the prompt from the text and calls prepoc on the completion"""
     return [
         prepoc(output[len(formatted_prompt) :])
         for output, formatted_prompt in zip(outputs, formatted_prompts)

@@ -5,6 +5,7 @@ Memory related utils to do friendly inference :)
 
 import gc
 import math
+import time
 import inspect
 import traceback
 
@@ -14,6 +15,10 @@ from typing import Any, Union, Tuple
 import torch
 import psutil
 import pynvml
+
+from llmsearch.utils.logging_utils import get_logger
+
+logger = get_logger(__name__)
 
 
 class Cache:
@@ -101,7 +106,7 @@ def get_traceback(ignore_first: int = 0, stack_context: int = 5) -> Tuple[Tuple]
 cache = Cache()
 
 
-def batch_without_oom_error(func : callable):
+def batch_without_oom_error(func: callable):
     """Perform Inference on a batch of samples by dividing the batch_size by 2 each time whenever OOM error happens
     - Function should have a `batch_size` and `disable_batch_size_cache` parameter
 
@@ -137,11 +142,15 @@ def batch_without_oom_error(func : callable):
                     total_available_gpu_memory=total_available_gpu_memory,
                     total_available_ram_memory=total_available_ram_memory,
                 )
+        logger.info(
+            "Starting inference with generation parameters - %s",
+            kwargs.get("generation_kwargs", {}),
+        )
+        logger.info("Performing inference with batch_size - %s", batch_size)
+        start_time = time.time()
         while True:
             # Try running with specified batch size
             try:
-                # TODO : add logging
-                print(f"Performing inference with batch_size - {batch_size}")
                 res = func(
                     *args,
                     batch_size=batch_size,
@@ -154,29 +163,34 @@ def batch_without_oom_error(func : callable):
                     gpu_info = get_gpu_information()
                     total_available_gpu_memory = gpu_info[2] if gpu_info else gpu_info
                     total_available_ram_memory = get_total_available_ram()
-                    # TODO add logging
-                    print(
-                        f"Total available ram memory - {total_available_ram_memory}, Total available gpu memory - {total_available_gpu_memory}\n"
-                    )
                     # Set value for next iteration with the input hash
+                    logger.debug(
+                        "Setting batch_size cache value - %s for this particular configuration",
+                        batch_size,
+                    )
                     cache.set_value(
                         value=batch_size,
                         stacktrace=stacktrace,
                         total_available_gpu_memory=total_available_gpu_memory,
                         total_available_ram_memory=total_available_ram_memory,
                     )
+                end_time = time.time()
+                latency = end_time - start_time
+                logger.info("Finished running inference, took %f secs", latency)
                 return res
             except RuntimeError as exception:
                 if batch_size > 1 and should_reduce_batch_size(exception):
-                    # add logging
-                    print(
-                        f"Unable to fit batch size - {batch_size}, Reducing batch size to - {batch_size // 2}"
+                    logger.info(
+                        "Unable to fit batch size - %d, Reducing batch size to - %d",
+                        batch_size,
+                        batch_size // 2,
                     )
                     batch_size //= 2
                     gc_cuda()
                 else:
-                    print("Unable to fit the lowest batch size")
-                    raise
+                    raise Exception(
+                        f"Unable to fit the lowest batch size of 1 for inference, try methods to reduce the gpu consumption"
+                    ) from exception
 
     return inner_wrapper
 
