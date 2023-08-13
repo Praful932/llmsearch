@@ -2,7 +2,6 @@
 Main Tuner Module containing LLMEstimatorWrapper Class & Tuner Class for scikit-learn
 """
 
-import time
 import random
 from operator import itemgetter
 from typing import List, Union, Tuple, Dict, Callable
@@ -52,7 +51,7 @@ class LLMEstimatorWrapper(BaseEstimator):
             disable_batch_size_cache (bool): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised by the inference function
             tokenizer_encoding_kwargs (Dict): Encoding arguments for the `tokenizer`
             tokenizer_decoding_kwargs (Dict, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`
-            disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this check does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.
+            disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.
             pred_function (Union[Callable, None], optional): Override Prediction Function `.predict` is called. The overriden function should have the signature - `(estimator : LLMEstimatorWrapper, model_inputs : List, generation_params : Dict) -> outputs : List` & should return a list of outputs which can be directly consumed by `scorer` as `y_pred`. Defaults to None.
 
         - All `kwargs` are assumed to be generation params and used when doing Hyperparameter search
@@ -93,7 +92,7 @@ class LLMEstimatorWrapper(BaseEstimator):
         """Property - model_generation_param_keys"""
         return self._model_generation_param_keys
 
-    def fit(self, *args, **kwargs) -> BaseEstimator:
+    def fit(self, *args, **kwargs) -> BaseEstimator:  # pylint: disable=unused-argument
         """Dummy fit function which does not actually do anything :)
 
         Returns:
@@ -164,7 +163,7 @@ class LLMEstimatorWrapper(BaseEstimator):
         params : dict
             Parameter names mapped to their values.
         """
-        out = dict()
+        out = {}
         for key, value in vars(self).items():
             # Ignore any private/protected variables
             if not (key.startswith("__") or key.startswith("_")):

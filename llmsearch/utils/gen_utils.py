@@ -1,5 +1,6 @@
 """
 Generation Related Utilties
+Note : Generation Type Detection Scripts are updated as of transformers v4.31.0
 """
 from typing import Dict, Union, List
 
@@ -156,7 +157,7 @@ def identify_and_validate_gen_params(gen_params: Dict):
         if check:
             check_sample_parameter(
                 gen_params=gen_params,
-                gen_type_params=gen_type_map[gen_type_name].keys(),
+                gen_type_params=rules.keys(),
             )
             ret_val = gen_type_name
             break
