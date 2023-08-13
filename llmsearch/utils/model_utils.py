@@ -4,7 +4,6 @@ Common Utilties for Models
 import gc
 import math
 import random
-import warnings
 from itertools import islice
 from typing import List, Dict, Union, Tuple, Iterable, Iterator
 
@@ -33,7 +32,7 @@ def get_device() -> str:
     """
     if torch.backends.mps.is_built() and torch.backends.mps.is_available():
         return "mps"
-    elif torch.cuda.is_available():
+    if torch.cuda.is_available():
         return "cuda"
     return "cpu"
 
@@ -132,6 +131,9 @@ def infer_data(
                 outputs=decoded_output, prepoc=output_prepoc
             )
         outputs.extend(decoded_output)
+    for x, y_pred in zip(model_inputs, outputs):
+        logger.debug("Input - %s", repr(x))
+        logger.debug("Model Output - %s", repr(y_pred))
     if return_optimal_batch_size:
         return outputs, batch_size
     return outputs

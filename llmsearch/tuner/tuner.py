@@ -239,7 +239,7 @@ class Tuner:
             is_encoder_decoder (bool): whether the model is an encoder-decoder model, `False` if not
             scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in ground truth and predictions are returns a metric to optimize on
             greater_is_better (bool, optional): scorer is a scoring(greater is better) or a loss function(lower is better) . Defaults to True.
-            seed (int, optional): seed for reproducibility. Defaults to 42.
+            seed (int, optional): seed for reproducibility, Only used for computing tokenizer arguments in `self.get_default_input_tokenizer_kwargs`.  Defaults to 42.
             tokenizer_encoding_kwargs (Dict, optional): Encoding arguments for the `tokenizer`. If `None` it's initialized using the `get_default_input_tokenizer_kwargs` method. Defaults to None.
             tokenizer_decoding_kwargs (Dict, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
             batch_size (int, optional): batch_size to run inference with, this gets dynamically halfed if the inference function encounters OOM errors. Defaults to 32.
@@ -322,6 +322,9 @@ class Tuner:
         # Calculate max_length
         tokenizer_encoding_kwargs["max_length"] = self.get_value_at_quantile(
             input_list=X, quantile=self.tokenizer_max_length_quantile
+        )
+        logger.info(
+            "Setting tokenizer encoding arguments to - %s", tokenizer_encoding_kwargs
         )
         return tokenizer_encoding_kwargs
 

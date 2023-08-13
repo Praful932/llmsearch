@@ -1,6 +1,7 @@
 """
 Logging Related Utils
 """
+
 import os
 import logging
 from logging import (
@@ -20,6 +21,7 @@ log_levels = {
 log_level_strs = log_levels.keys()
 
 default_logging_level = "warning"
+_default_handler = None
 
 
 def _get_lib_name() -> str:
@@ -51,17 +53,23 @@ def _get_library_root_logger() -> logging.Logger:
 
 def _configure_library_root_logger() -> logging.Logger:
     """Configure library root logger"""
+    global _default_handler  # pylint: disable=global-statement
+
+    if _default_handler:
+        # Already configured library root logger
+        return
     formatter = logging.Formatter(
-        "%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s",
+        "%(asctime)s.%(msecs)03d - %(name)s:%(lineno)d - %(levelname)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(formatter)
+    _default_handler = logging.StreamHandler()
+    _default_handler.setFormatter(formatter)
     library_root_logger = logging.getLogger(_get_lib_name())
-    library_root_logger.addHandler(stream_handler)
+    library_root_logger.addHandler(_default_handler)
     library_root_logger.setLevel(_get_lib_default_logging_level())
+    # when running the api through scikit-learn (for hyperparameter search), logs get propogated to some root logger
+    # so disabling by default
     library_root_logger.propagate = False
-    return library_root_logger
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -89,6 +97,38 @@ def set_verbosity_warning():
 def set_verbosity_debug():
     """Sets the logging verbosity of the library root logger to debug"""
     return set_verbosity(DEBUG)
+
+
+def disable_default_handler():
+    """Disable default handler"""
+    _configure_library_root_logger()
+
+    assert _default_handler is not None
+    _get_library_root_logger().removeHandler(_default_handler)
+
+
+def enable_default_handler():
+    """Enable default handler"""
+    _configure_library_root_logger()
+
+    assert _default_handler is not None
+    _get_library_root_logger().addHandler(_default_handler)
+
+
+def add_handler(handler: logging.Handler):
+    """Add a custom handler to the library root logger"""
+    _configure_library_root_logger()
+
+    assert _default_handler is not None
+    _get_library_root_logger().addHandler(handler)
+
+
+def remove_handler(handler: logging.Handler):
+    """Remove a handler to the library root logger"""
+    _configure_library_root_logger()
+
+    assert _default_handler is not None
+    _get_library_root_logger().removeHandler(handler)
 
 
 # setup library root logger
