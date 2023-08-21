@@ -314,15 +314,18 @@ class Tuner:
             "padding": True,
             "truncation": True,
         }
+        logger.info("Computing tokenizer encoding arguments using a sample of the dataset...")
         sample_size = int(len(self.dataset["y"]) * sample_ratio)
         random.seed(self.seed)
         sample_indexes = random.sample(range(0, len(self.dataset["y"])), sample_size)
         get_items = itemgetter(*sample_indexes)
         X = get_items(self.dataset["X"])
         # Calculate max_length
-        tokenizer_encoding_kwargs["max_length"] = self.get_value_at_quantile(
+        max_length_at_quantile = self.get_value_at_quantile(
             input_list=X, quantile=self.tokenizer_max_length_quantile
         )
+        tokenizer_encoding_kwargs['max_length'] = min(max_length_at_quantile, self.tokenizer.model_max_length)
+        logger.debug("Computed max length at quantile - %d, tokenizer model max length - %d", max_length_at_quantile, tokenizer_encoding_kwargs['max_length'])
         logger.info(
             "Setting tokenizer encoding arguments to - %s", tokenizer_encoding_kwargs
         )
@@ -368,7 +371,7 @@ class Tuner:
         Returns:
             int: rounded value at quantile
         """
-        # encode the input
+        # we don't consider `self.tokenizer.model_max_length` as the objective is to get a sense of the input
         input_ids = self.tokenizer(
             input_list, max_length=None, truncation=False, padding=False
         )["input_ids"]
