@@ -195,11 +195,14 @@ class MirostatLogitsWarper(LogitsWarper):
 
         # iterate through candidates of each sample
         for i, row in enumerate(sorted_logits_batch):
-            print(row.shape)
-            softmaxed_candidates = torch.softmax(row.squeeze(0), dim=0)
+            print(f'idx - {i}')
+            print(f"row sum - {torch.sum(row)}")
+            softmaxed_candidates = torch.softmax(row.reshape(-1), dim=0)
             print(f"softmax-shape - {softmaxed_candidates.shape}")
+            print(f"softmaxed candidate - {softmaxed_candidates}")
 
             # pick a candidate index from all of the selected candidates
+            print()
             prev_index = torch.multinomial(
                 softmaxed_candidates, num_samples=1, replacement=True
             )
@@ -258,9 +261,12 @@ class MirostatLogitsWarper(LogitsWarper):
                 break
         print(f"row logit tensor sum - {torch.sum(sorted_logits)}")
         print(f"Break index i - {i}")
+        print(sorted_logits.shape)
 
         # Normalize the probabilities of the remaining words
+        print(f"row sum - {torch.sum(sorted_logits)}")
         prob_topk = torch.softmax(sorted_logits, dim=0)
+        print(f"softmaxed candidate - {prob_topk}")
 
         prev_i = torch.multinomial(prob_topk, num_samples=1, replacement=True)
         print(f"previous index - {prev_i}")
