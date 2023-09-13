@@ -84,6 +84,7 @@ def infer_data(
     Returns:
         Union[Tuple[List, int], List]: outputs and or best batch size
     """
+    seed = None
     assert isinstance(
         tokenizer_encoding_kwargs, Dict
     ), f"Incorrect tokenizer kwargs input, expected Dict - {tokenizer_encoding_kwargs}"
@@ -101,7 +102,8 @@ def infer_data(
         logger.info("Detected generation type - %s", generation_type)
 
     if "generation_seed" in generation_kwargs:
-        seed_everything(seed=generation_kwargs.pop("generation_seed"))
+        seed = generation_kwargs['generation_seed']
+        seed_everything(seed=seed)
 
     for batch in tqdm(
         batcher(iterable=model_inputs, batch_size=batch_size),
