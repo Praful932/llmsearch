@@ -26,6 +26,7 @@ logger = get_logger(__name__)
 
 from transformers import AutoTokenizer
 
+
 class TailFreeLogitsWarper(LogitsWarper):
     def __init__(
         self,
@@ -136,9 +137,9 @@ class MirostatLogitsWarper(LogitsWarper):
         # max cross entropy/surprise
         self.mu = 2 * self.mirostat_tau
         self.batch_init_done = False
-        self.generation_seed  = generation_seed
+        self.generation_seed = generation_seed
 
-    def __call_(
+    def __call__(
         self, input_ids: torch.LongTensor, scores: torch.FloatTensor
     ) -> torch.FloatTensor:
         """
@@ -156,7 +157,7 @@ class MirostatLogitsWarper(LogitsWarper):
         """
         # input_ids = input_ids[0].reshape(1, -1)
         # scores = scores[0].reshape(1, -1)
-        print(f"Iteration - {input_ids.shape[1]}")
+        # print(f"Iteration - {input_ids.shape[1]}")
         # input_ids = input_ids[0].reshape(-1, 1)
         # scores = scores[0].reshape(-1, 32128)
         if not self.batch_init_done:
@@ -166,12 +167,12 @@ class MirostatLogitsWarper(LogitsWarper):
 
         # (batch_size, vocab_size), (batch_size, vocab_size)
         sorted_logits, sorted_indices = torch.sort(scores, descending=True, dim=-1)
-        print(f"sorted logits 1st example - {sorted_logits[0][:4]}")
-        print(f"sorted indices - {sorted_indices.tolist()[0][:5]}")
+        # print(f"sorted logits 1st example - {sorted_logits[0][:4]}")
+        # print(f"sorted indices - {sorted_indices.tolist()[0][:5]}")
 
         # calculate probs from logits - (batch_size, vocab_size)
         prob_original = torch.softmax(sorted_logits, dim=-1)
-        print(f"Probability 1st example - {prob_original[0][:4]}")
+        # print(f"Probability 1st example - {prob_original[0][:4]}")
 
         # Get candidate logits for each sample
         sorted_logits_batch = (
@@ -195,36 +196,36 @@ class MirostatLogitsWarper(LogitsWarper):
             row_logit_tensor = torch.cat(row_logits, dim=0)
             sorted_logits_batch.append(row_logit_tensor)
 
-        print(f"Row logit tensor sum - {torch.sum(sorted_logits_batch[0])}")
+        # print(f"Row logit tensor sum - {torch.sum(sorted_logits_batch[0])}")
 
         prev_indices = []
         final_scores = []
 
         # iterate through candidates of each sample
         for i, row in enumerate(sorted_logits_batch):
-            if i == 0:
-                print(f"Row sum - {torch.sum(row)}")
+            # if i == 0:
+            #     print(f"Row sum - {torch.sum(row)}")
             softmaxed_candidates = torch.softmax(row.reshape(-1), dim=0)
 
-            if i == 0:
-                print(f"Softmax vals - {softmaxed_candidates[:4]}")
+            # if i == 0:
+            #     print(f"Softmax vals - {softmaxed_candidates[:4]}")
 
             # pick a candidate index from all of the selected candidates
             if self.generation_seed:
-                print(f"Seeding with {self.generation_seed}")
+                # print(f"Seeding with {self.generation_seed}")
                 seed_everything(seed=self.generation_seed)
             prev_index = torch.multinomial(
                 softmaxed_candidates, num_samples=1, replacement=True
             )
-            if i == 0:
-                print(f"previous index - {prev_index}")
+            # if i == 0:
+            #     print(f"previous index - {prev_index}")
             prev_indices.append(prev_index)
 
-            if i == 0:
-                print(f"logit val - {softmaxed_candidates[prev_index]}")
+            # if i == 0:
+            #     print(f"logit val - {softmaxed_candidates[prev_index]}")
             observed_surprise_value = -math.log2(softmaxed_candidates[prev_index])
-            if i == 0:
-                print(f"obs surprise value - {observed_surprise_value}")
+            # if i == 0:
+            #     print(f"obs surprise value - {observed_surprise_value}")
 
             # calculate error based on observed surprise value and target surprise value
             e = observed_surprise_value - self.mirostat_tau
@@ -243,16 +244,16 @@ class MirostatLogitsWarper(LogitsWarper):
             indices_to_remove = sorted_indices_to_remove.unsqueeze(0).scatter(
                 1, sorted_indices[i].unsqueeze(0), sorted_indices_to_remove.unsqueeze(0)
             )
-            if i == 0:
-                random_tensor = torch.arange(1, len(indices_to_remove[0]) + 1).to("mps")
-                print(f"indices to remove - {sum(random_tensor* indices_to_remove[0])}")
+            # if i == 0:
+            #     random_tensor = torch.arange(1, len(indices_to_remove[0]) + 1).to("mps")
+            #     print(f"indices to remove - {sum(random_tensor* indices_to_remove[0])}")
             # mask all other tokens
             scores[i] = scores[i].masked_fill(indices_to_remove, self.filter_value)
-            if i == 0:
-                print(f"sum value - {torch.sum(scores[i][scores[i] >= 0])}\n\n")
+            # if i == 0:
+            #     print(f"sum value - {torch.sum(scores[i][scores[i] >= 0])}\n\n")
         return scores
 
-    def __call__(
+    def __call_(
         self, input_ids: torch.LongTensor, scores: torch.FloatTensor
     ) -> torch.FloatTensor:
         """Non-batch mode"""
@@ -264,7 +265,7 @@ class MirostatLogitsWarper(LogitsWarper):
         # print(f"sorted logits tensor sum - {torch.sum(sorted_logits)}")
         print(f"sorted logits 1st example - {sorted_logits[:4]}")
         print(f"sorted indices - {sorted_indices.tolist()[:5]}")
-        prob_original = torch.softmax(sorted_logits, dim=-1) # candidates
+        prob_original = torch.softmax(sorted_logits, dim=-1)  # candidates
         print(f"Probability 1st example - {prob_original[:4]}")
         print(prob_original[0])
 
@@ -328,7 +329,7 @@ class RepetitionPenaltyLogitsProcessorWithRange(LogitsProcessor):
     def __call__(
         self, input_ids: torch.LongTensor, scores: torch.FloatTensor
     ) -> torch.FloatTensor:
-
+        # Check for rep penalty from the last `self.range` tokens
         input_ids = input_ids[:, -self._range :]
         score = torch.gather(scores, 1, input_ids)
 
@@ -343,7 +344,6 @@ def get_logits_warper_patch(self, generation_config):
     warpers = self._get_logits_warper_old(generation_config)
     warpers_to_add = LogitsProcessorList()
     min_tokens_to_keep = 2 if generation_config.num_beams > 1 else 1
-
     # only apply mirostat if mode is 2
     if (
         generation_config.mirostat_mode is not None
@@ -409,7 +409,7 @@ def generation_config_init_patch(self, **kwargs):
     self.__init___old(**kwargs)
     # Add in extra generation params
     self.tfs = kwargs.pop("tfs", None)
-    self.top_a = kwargs.pop("top_a", 0.0)
+    self.top_a = kwargs.pop("top_a", None)
     self.mirostat_mode = kwargs.pop("mirostat_mode", 0)
     self.mirostat_eta = kwargs.pop("mirostat_eta", 0.1)
     self.mirostat_tau = kwargs.pop("mirostat_tau", 5)

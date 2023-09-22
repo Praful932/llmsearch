@@ -2,7 +2,8 @@
 Generation Related Utilties
 Note : Generation Type Detection Scripts are updated as of transformers v4.31.0
 """
-from typing import Dict, Union, List
+
+from typing import Dict, Union, List, Tuple
 
 from llmsearch.utils.logging_utils import get_logger
 
@@ -102,6 +103,18 @@ gen_type_map = {
         "num_beam_groups": {"gt": 1},
         "diversity_penalty": {"gt": 0},
         "do_sample": {"equal": False},
+    },
+    "Mirostat Sampling": {
+        "mirostat_mode": {"equal": 2},
+        "do_sample": {"equal": True},
+    },
+    "Tail-Free Sampling": {
+        "tfs": {"gte": 0, "lte": 1.0},
+        "do_sample": {"equal": True},
+    },
+    "Top-A Sampling": {
+        "tfs": {"gte": 0, "lte": 1.0},
+        "do_sample": {"equal": True},
     },
 }
 
@@ -211,3 +224,182 @@ def check_if_param_req_satisfy(gen_params: Dict, param: str, param_req: Dict):
             check = value < value_to_check
         checks.append(check)
     return bool(sum(checks))
+
+
+def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
+    """Get sample hyp spave
+
+    Args:
+        seed (int): seed
+
+    Returns:
+        Tuple[List, List]: First Item is a larger hyp space which searches for individual generationt types
+        Second Item of the Tuple are the top generation params as evaluated by oobabooga using Vicuna-13B with instruct prompts
+        Ref - https://www.reddit.com/r/LocalLLaMA/comments/14adfw2/preset_arena_17205_comparisons_between_241/
+    """
+    param_grid1 = [
+        {
+            "num_beams": [1],
+            "top_k": list(range(4, 20)),
+            "do_sample": [True],
+            "penalty_alpha": [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            "num_beams": [1],
+            "num_beam_groups": [1],
+            "do_sample": [False],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            "num_beams": [3],
+            "num_beam_groups": [1],
+            "do_sample": [False],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            "num_beams": list(range(2, 4)),
+            "num_beam_groups": [1],
+            "do_sample": [True, False],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            "mirostat_mode": [2],
+            "mirostat_eta": [0.1, 0.2, 0.3, 0.4, 0.5],
+            "mirostat_tau": list(range(3, 8)),
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            "tfs": [0.8, 0.85, 0.9, 0.95, 0.99],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            "top_a": [0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+    ]
+    # presets as found in https://github.com/oobabooga/oobabooga.github.io/blob/main/arena/results.md#presets-that-i-chose
+    param_grid_2 = [
+        {
+            # random_preset_066
+            "epsilon_cutoff": [1.49],
+            "eta_cutoff": [10.42],
+            "repetition_penalty": [1.17],
+            "temperature": [1.31],
+            "top_a": [0.52],
+            "top_k": [49],
+            "top_p": [0.14],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            # random_preset_134
+            "repetition_penalty": [1.01],
+            "temperature": [0.87],
+            "tfs": [0.68],
+            "top_k": [85],
+            "top_p": [0.99],
+            "typical_p": [0.68],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            # simple-1
+            "repetition_penalty": [1.15],
+            "temperature": [0.7],
+            "top_k": [20],
+            "top_p": [0.9],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            # random_preset_035
+            "repetition_penalty": [1.09],
+            "temperature": [1.31],
+            "top_k": [72],
+            "top_p": [0.29],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            # starchat
+            "temperature": [0.2],
+            "top_k": [50],
+            "top_p": [0.95],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            # random_preset_183
+            "encoder_repetition_penalty": [1.07],
+            "eta_cutoff": [10.78],
+            "repetition_penalty": [1.21],
+            "temperature": [1.01],
+            "top_a": [0.75],
+            "top_k": [91],
+            "top_p": [0.21],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            # tfs-with-top-a
+            "repetition_penalty": [1.15],
+            "temperature": [0.7],
+            "tfs": [0.95],
+            "top_a": [0.2],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            # Special-Contrastive Search-3
+            "do_sample": [False],
+            "penalty_alpha": [0.3],
+            "top_k": [4],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            "repetition_penalty": [1.02],
+            "temperature": [1.68],
+            "tfs": [0.97],
+            "top_a": [0.42],
+            "top_k": [77],
+            "top_p": [0.17],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            # mirostat
+            "mirostat_mode": [2],
+            "mirostat_eta": [0.1],
+            "mirostat_tau": [5],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+        {
+            # NovelAI-Ouroboros
+            "repetition_penalty": [1.05],
+            "temperature": [1.07],
+            "top_k": [100],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens" : [max_new_tokens],
+        },
+    ]
+    return param_grid1, param_grid_2

@@ -33,6 +33,7 @@ jupyter = "^1.0.0"
 py7zr = "^0.20.4"
 nltk = "^3.8.1"
 rouge-score = "^0.1.2"
+beepy = "^1.0.7"
 
 [build-system]
 requires = ["poetry-core"]

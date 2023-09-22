@@ -102,7 +102,7 @@ def infer_data(
         logger.info("Detected generation type - %s", generation_type)
 
     if "generation_seed" in generation_kwargs:
-        seed = generation_kwargs['generation_seed']
+        seed = generation_kwargs["generation_seed"]
         seed_everything(seed=seed)
 
     for batch in tqdm(
