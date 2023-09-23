@@ -289,7 +289,7 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
         },
         {
             # exhaustive search
-            "top_p": [0.5, 0.7, 0.9],
+            "top_p": [0.5, 0.7, 0.9, 1.0],
             "temperature": [0.7, 0.8, 0.9, 1.0],
             "no_repeat_ngram_size": [0, 3, 4, 5],
             "repetition_penalty": [1.0, 1.1, 1.2],
