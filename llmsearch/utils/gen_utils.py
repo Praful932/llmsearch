@@ -244,46 +244,58 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "do_sample": [True],
             "penalty_alpha": [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             "num_beams": [1],
             "num_beam_groups": [1],
             "do_sample": [False],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             "num_beams": [3],
             "num_beam_groups": [1],
             "do_sample": [False],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             "num_beams": list(range(2, 4)),
             "num_beam_groups": [1],
-            "do_sample": [True, False],
+            "do_sample": [False],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
+            "no_repeat_ngram_size": [0, 3, 4, 5],
         },
-        {
-            "mirostat_mode": [2],
-            "mirostat_eta": [0.1, 0.2, 0.3, 0.4, 0.5],
-            "mirostat_tau": list(range(3, 8)),
-            "do_sample": [True],
-            "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
-        },
+        # disabling as currently quite slow
+        # {
+        #     "mirostat_mode": [2],
+        #     "mirostat_eta": [0.1, 0.2, 0.3, 0.4, 0.5],
+        #     "mirostat_tau": list(range(3, 8)),
+        #     "do_sample": [True],
+        #     "generation_seed": [seed],
+        #     "max_new_tokens" : [max_new_tokens],
+        # },
         {
             "tfs": [0.8, 0.85, 0.9, 0.95, 0.99],
             "do_sample": [True],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             "top_a": [0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
             "do_sample": [True],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
+        },
+        {
+            # exhaustive search
+            "top_p": [0.5, 0.7, 0.9],
+            "temperature": [0.7, 0.8, 0.9, 1.0],
+            "no_repeat_ngram_size": [0, 3, 4, 5],
+            "repetition_penalty": [1.0, 1.1, 1.2],
+            "do_sample": [True],
+            "generation_seed": [seed],
+            "max_new_tokens": [max_new_tokens],
         },
     ]
     # presets as found in https://github.com/oobabooga/oobabooga.github.io/blob/main/arena/results.md#presets-that-i-chose
@@ -299,7 +311,7 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "top_p": [0.14],
             "do_sample": [True],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             # random_preset_134
@@ -311,7 +323,7 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "typical_p": [0.68],
             "do_sample": [True],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             # simple-1
@@ -321,7 +333,7 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "top_p": [0.9],
             "do_sample": [True],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             # random_preset_035
@@ -331,7 +343,7 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "top_p": [0.29],
             "do_sample": [True],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             # starchat
@@ -340,7 +352,7 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "top_p": [0.95],
             "do_sample": [True],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             # random_preset_183
@@ -353,7 +365,7 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "top_p": [0.21],
             "do_sample": [True],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             # tfs-with-top-a
@@ -363,14 +375,14 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "top_a": [0.2],
             "do_sample": [True],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             # Special-Contrastive Search-3
             "do_sample": [False],
             "penalty_alpha": [0.3],
             "top_k": [4],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
         {
             "repetition_penalty": [1.02],
@@ -381,17 +393,18 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "top_p": [0.17],
             "do_sample": [True],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
-        {
-            # mirostat
-            "mirostat_mode": [2],
-            "mirostat_eta": [0.1],
-            "mirostat_tau": [5],
-            "do_sample": [True],
-            "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
-        },
+        # disabling as currently quite slow
+        # {
+        #     # mirostat
+        #     "mirostat_mode": [2],
+        #     "mirostat_eta": [0.1],
+        #     "mirostat_tau": [5],
+        #     "do_sample": [True],
+        #     "generation_seed": [seed],
+        #     "max_new_tokens" : [max_new_tokens],
+        # },
         {
             # NovelAI-Ouroboros
             "repetition_penalty": [1.05],
@@ -399,7 +412,7 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "top_k": [100],
             "do_sample": [True],
             "generation_seed": [seed],
-            "max_new_tokens" : [max_new_tokens],
+            "max_new_tokens": [max_new_tokens],
         },
     ]
     return param_grid1, param_grid_2
