@@ -1,13 +1,13 @@
 # Autoreload
 import sys
-import beepy
+import nltk
+nltk.download('punkt')
+# import beepy
 from typing import List
 
 import numpy as np
-from IPython.display import Audio, display
+# from IPython.display import Audio, display
 
-
-import nltk
 import torch
 import numpy as np
 import datasets
@@ -31,12 +31,12 @@ from llmsearch.utils.mem_utils import gc_cuda
 
 print(f"Device - {device}")
 
-def beep(duration = 1, frequency=440, rhythm=1):
-    sample_rate = 44100  # Standard audio sample rate
-    t = np.linspace(0, duration, int(duration * sample_rate), endpoint=False)
-    audio_data = np.sin(2*np.pi*frequency*t)  # Generate a sine wave
-    audio_data *= np.where(np.arange(len(audio_data)) % rhythm == 0, 1, 0)  # Apply rhythm
-    display(Audio(audio_data, rate=sample_rate, autoplay=True))
+# def beep(duration = 1, frequency=440, rhythm=1):
+#     sample_rate = 44100  # Standard audio sample rate
+#     t = np.linspace(0, duration, int(duration * sample_rate), endpoint=False)
+#     audio_data = np.sin(2*np.pi*frequency*t)  # Generate a sine wave
+#     audio_data *= np.where(np.arange(len(audio_data)) % rhythm == 0, 1, 0)  # Apply rhythm
+#     display(Audio(audio_data, rate=sample_rate, autoplay=True))
 
 dataset = datasets.load_dataset("samsum")
 
@@ -167,4 +167,4 @@ for gt, out1, out2 in zip(samples_to_tune_on['y'], outputs1, outputs2):
         print(f"out1 - {out1}")
         print(f"out2 - {out2}\n\n")
 
-beepy.beep(sound = 1)
+# beepy.beep(sound = 1)
