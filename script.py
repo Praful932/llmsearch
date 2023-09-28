@@ -19,4 +19,4 @@ def get_dependencies_from_wheel(wheel_path):
                     return [str(dep) for dep in dependencies]
 
 # Use the function:
-print(get_dependencies_from_wheel('dist/llmsearch-0.1.0-py3-none-any.whl'))
+print(get_dependencies_from_wheel('temp_dist/llmsearch-0.1.0-py3-none-any.whl'))

@@ -4696,4 +4696,4 @@ pynvml = ["nvidia-ml-py3"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<4.0"
-content-hash = "febcee71010864dc18c9cf627350afe6c35d177cd7d2fa3b74d7c0f78c196416"
+content-hash = "c099c72b6b23a2ecdf2b8f782e7bd3c7b32b6ed9b03be17d530d5f965129eb86"
