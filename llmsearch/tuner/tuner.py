@@ -226,6 +226,7 @@ class Tuner:
         disable_generation_param_checks: bool = False,
         sample_ratio: float = 0.3,
         tokenizer_max_length_quantile: float = 0.9,
+        output_preproc: Callable = lambda x: x.strip(),
     ):
         """Tuner Class
 
@@ -247,6 +248,7 @@ class Tuner:
             disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this check does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.  Defaults to False.
             sample_ratio (float, optional): Sampling Ratio of `dataset` to find the ideal values for padding and truncation to batch inputs to the model. Argument is invalid if `tokenizer_encoding_kwargs` is not `None`. Defaults to 0.3.
             tokenizer_max_length_quantile (float, optional): quantile at which the value for `max_length` will be computed using the initialized dataset. Defaults to 0.9.
+            output_preproc (Callabale, optional): preprocessing applied to the decoded output(only the completion). Defaults to stripping the ouptut in `infer_data` function.
         """
         self.tokenizer = tokenizer
         self.prompt_template = prompt_template
@@ -293,6 +295,7 @@ class Tuner:
             tokenizer_encoding_kwargs=self.tokenizer_encoding_kwargs,
             tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
         )
+        self.output_preproc = output_preproc
 
     def get_default_input_tokenizer_kwargs(
         self,
@@ -306,6 +309,7 @@ class Tuner:
             tokenizer_length_percentile (float): percentile to find a value for `max_length` based on the dataset
             tokenizer_kwargs (Union[Dict, None]): Encoding key value arguments for the `tokenizer`. Returns the same value if this is not `None`. Defaults to None.
         """
+        _quantiles_to_calc = [0.80, 0.85, 0.90, 0.92, 0.94, 0.95, 0.97, 0.99]
 
         if tokenizer_kwargs:
             return tokenizer_kwargs
@@ -314,7 +318,9 @@ class Tuner:
             "padding": True,
             "truncation": True,
         }
-        logger.info("Computing tokenizer encoding arguments using a sample of the dataset...")
+        logger.info(
+            "Computing tokenizer encoding arguments using a sample of the dataset..."
+        )
         sample_size = int(len(self.dataset["y"]) * sample_ratio)
         random.seed(self.seed)
         sample_indexes = random.sample(range(0, len(self.dataset["y"])), sample_size)
@@ -324,8 +330,15 @@ class Tuner:
         max_length_at_quantile = self.get_value_at_quantile(
             input_list=X, quantile=self.tokenizer_max_length_quantile
         )
-        tokenizer_encoding_kwargs['max_length'] = min(max_length_at_quantile, self.tokenizer.model_max_length)
-        logger.debug("Computed max length at quantile - %d, tokenizer model max length - %d", max_length_at_quantile, tokenizer_encoding_kwargs['max_length'])
+        tokenizer_encoding_kwargs["max_length"] = min(
+            max_length_at_quantile, self.tokenizer.model_max_length
+        )
+        logger.debug(
+            "Computed max length at quantile - %d, tokenizer model max length - %d",
+            max_length_at_quantile,
+            tokenizer_encoding_kwargs["max_length"],
+        )
+
         logger.info(
             "Setting tokenizer encoding arguments to - %s", tokenizer_encoding_kwargs
         )
@@ -357,6 +370,7 @@ class Tuner:
             generation_kwargs=generation_kwargs,
             disable_batch_size_cache=self.disable_batch_size_cache,
             disable_generation_param_checks=self.disable_generation_param_checks,
+            output_preproc=self.output_preproc,
         )
         score = self.score_func(y_true=y_true, y_pred=y_pred)
         return score, y_pred

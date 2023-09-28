@@ -19,11 +19,6 @@ from llmsearch.utils.mem_utils import batch_without_oom_error, gc_cuda
 logger = get_logger(__name__)
 
 
-def strip_output(s: str):
-    """Just calls .strip nothing else"""
-    return s.strip()
-
-
 def get_device() -> str:
     """Get device one of "cpu", "cuda", "mps"
 
@@ -63,7 +58,7 @@ def infer_data(
     disable_generation_param_checks: bool = False,
     tokenizer_decoding_kwargs: Dict = None,
     return_optimal_batch_size: bool = False,
-    output_prepoc: callable = strip_output,
+    output_preproc: callable = lambda x: x.strip(),
 ) -> Union[Tuple[List, int], List]:
     """Infer on data with a specific batch size
 
@@ -79,7 +74,7 @@ def infer_data(
         disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this check does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.
         tokenizer_decoding_kwargs (_type_, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
         return_optimal_batch_size (bool, optional): if the function should return the optimal batch size found, useful for caching when performing cross validation. Defaults to False.
-        output_prepoc (Callable, optional): Prepoc to run on the completion, by default strips the output. Note that this is applied on the completion. Defaults to False.
+        output_preproc (Callable, optional): Prepoc to run on the completion, by default strips the output. Note that this is applied on the completion. Defaults to False.
 
     Returns:
         Union[Tuple[List, int], List]: outputs and or best batch size
@@ -126,11 +121,11 @@ def infer_data(
         # remove prompt
         if not is_encoder_decoder:
             decoded_output = decoder_parser(
-                outputs=decoded_output, formatted_prompts=batch, prepoc=output_prepoc
+                outputs=decoded_output, formatted_prompts=batch, prepoc=output_preproc
             )
         else:
             decoded_output = encoder_decoder_parser(
-                outputs=decoded_output, prepoc=output_prepoc
+                outputs=decoded_output, prepoc=output_preproc
             )
         outputs.extend(decoded_output)
     for x, y_pred in zip(model_inputs, outputs):

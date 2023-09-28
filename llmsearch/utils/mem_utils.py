@@ -14,11 +14,19 @@ from typing import Any, Union, Tuple
 
 import torch
 import psutil
-import pynvml
 
 from llmsearch.utils.logging_utils import get_logger
 
 logger = get_logger(__name__)
+
+
+try:
+    import pynvml
+except ImportError:
+    if torch.cuda.is_available():
+        logger.warning(
+            "pynvml package not found in a CUDA environment, Install it by running - `pip install nvidia-ml-py3` for betting caching of batch size while running search"
+        )
 
 
 class Cache:
