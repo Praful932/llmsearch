@@ -1,0 +1,1221 @@
+[
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 27,
+                "output_tokens": 97,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 78875.81443786621,
+                "output": [
+                    "radar\n\nA radar (Radio Detection and Ranging) is a detection system that uses radio waves to determine the range, angle, or velocity of objects. It is widely used in aviation for air traffic control and weather forecasting to detect the presence, location, or movement of various targets, such as aircraft, weather formations, and ground installations. The term \"radar\" is a palindrome, which means it reads the same forward and backward.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nThis palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 16,
+                "output_tokens": 19,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 20792.314291000366,
+                "output": [
+                    "Why did the pizza maker go broke? Because he just couldn't make enough dough.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nDo you have any jokes about pizza?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 22,
+                "output_tokens": 58,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 49568.861961364746,
+                "output": [
+                    "A plump parrot named Pete,\nLoved to peck at his perch with glee.\nIn the park, he'd prance,\nWith a purple, polka-dotted pants,\nAnd people would pause to admire his spree.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nCreate a limerick using five words that start with 'p'.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 20,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 78581.92777633667,
+                "output": [
+                    "Sleeping with your contact lenses in is generally not recommended as it can increase the risk of eye infections, corneal ulcers, and other complications. The eyes need to breathe and be hydrated, and wearing contacts for an extended period can deprive the eyes of oxygen and cause dryness. However, some people may be able to sleep in certain types of contact lenses designed for extended wear, but it's still best to consult with an eye care professional for personal"
+                ],
+                "input": "<|im_start|>system\nWhat happens if you sleep with your contact lenses in?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 22,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 78924.41725730896,
+                "output": [
+                    "1. uncover\n2. undo\n3. unusual\n4. unite\n5. unanimous\n6. unbiased\n7. unbreakable\n8. unconditional\n9. unconventional\n10. undecided\n11. undeniable\n12. underestimate\n13. underprivileged\n14. understatement\n15. underdog\n16. undergo\n17"
+                ],
+                "input": "<|im_start|>system\nGenerate a list of 20 words that start with 'un'<|im_end|>\n<|im_start|>assistant\n"
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "/kaggle/input/ehartford-dolphin-2-1-mistral-7b",
+            "low_cpu_mem_usage": true,
+            "torch_dtype": "torch.bfloat16"
+        },
+        "model_dtype": "torch.bfloat16",
+        "model_loading_time": 177302.47807502747,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 1,
+                    "total_available_memory_gb": 29
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 15
+                }
+            }
+        },
+        "model_device": "cpu"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 27,
+                "output_tokens": 97,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 10196.052312850952,
+                "output": [
+                    "radar\n\nA radar (Radio Detection and Ranging) is a detection system that uses radio waves to determine the range, angle, or velocity of objects. It is widely used in aviation for air traffic control and weather forecasting to detect the presence, location, or movement of various targets, such as aircraft, weather formations, and ground installations. The term \"radar\" is a palindrome, which means it reads the same forward and backward.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nThis palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 16,
+                "output_tokens": 19,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 1471.4038372039795,
+                "output": [
+                    "Why did the pizza maker go broke? Because he just couldn't make enough dough.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nDo you have any jokes about pizza?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 22,
+                "output_tokens": 58,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 3923.222780227661,
+                "output": [
+                    "A plump parrot named Pete,\nLoved to peck at his perch with glee.\nIn the park, he'd prance,\nWith a purple, polka-dotted pants,\nAnd people would pause to admire his spree.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nCreate a limerick using five words that start with 'p'.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 20,
+                "output_tokens": 89,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5902.382612228394,
+                "output": [
+                    "Sleeping with your contact lenses in is generally not recommended as it can increase the risk of eye infections, corneal ulcers, and other complications. The eyes need to breathe and be hydrated, and wearing contacts for an extended period can deprive the eyes of oxygen and cause dryness. It's best to remove your contact lenses before sleeping to allow your eyes to rest and maintain good eye health.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nWhat happens if you sleep with your contact lenses in?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 22,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 6583.483457565308,
+                "output": [
+                    "1. uncover\n2. undo\n3. unusual\n4. unite\n5. unanimous\n6. unbiased\n7. unbreakable\n8. unconditional\n9. unconventional\n10. undecided\n11. undeniable\n12. underestimate\n13. underprivileged\n14. understatement\n15. underdog\n16. undergo\n17"
+                ],
+                "input": "<|im_start|>system\nGenerate a list of 20 words that start with 'un'<|im_end|>\n<|im_start|>assistant\n"
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "/kaggle/input/ehartford-dolphin-2-1-mistral-7b",
+            "torch_dtype": "torch.bfloat16",
+            "device_map": "auto"
+        },
+        "model_dtype": "torch.bfloat16",
+        "model_loading_time": 138732.031583786,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 17,
+                    "total_available_memory_gb": 13
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 27
+                }
+            }
+        },
+        "model_device": "cuda:0"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 32,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 9009.322881698608,
+                "output": [
+                    "The term \"system\" in this context refers to a method or process used to analyze and interpret data. In aviation, a detection system is a device or set of devices that help pilots and air traffic controllers monitor and identify potential hazards, such as weather conditions or other aircraft in the vicinity. In weather forecasting, a detection system is a tool or technique used to gather and analyze data to predict future weather patterns and conditions.\n\nA palindrome, on the other"
+                ],
+                "input": "<|im_start|>system\nThis palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 22,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5417.633771896362,
+                "output": [
+                    "Why did the pizza maker go broke? Because he didn't have the right ingredients.\n\nWhy did the pizza maker go broke? Because he kept throwing his dough around.\n\nWhy did the pizza maker go broke? Because he couldn't find the right topping for his pies.\n\nWhy did the pizza maker go broke? Because he kept trying to make square pizzas.\n\nWhy did the pizza maker go broke? Because he kept telling customers their pizz"
+                ],
+                "input": "<|im_start|>system\nDo you have any jokes about pizza?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 28,
+                "output_tokens": 56,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 2989.9377822875977,
+                "output": [
+                    "A penguin named Pete from Peru,\nPaddled in pools, his favorite pursuit.\nHe'd plunge and then play,\nIn the sun's warm ray,\nWith a pebble he'd picked up, so cute.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nCreate a limerick using five words that start with 'p'.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 26,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5313.066720962524,
+                "output": [
+                    "Sleeping with your contact lenses in is not recommended as it can increase the risk of eye infections, corneal ulcers, and other complications. The lens can restrict oxygen flow to the cornea, which is essential for maintaining eye health. Additionally, the lens can accumulate debris and bacteria while you sleep, further increasing the risk of infection. It's best to remove your contact lenses before going to bed and to follow your eye care professional's recommendations for proper lens"
+                ],
+                "input": "<|im_start|>system\nWhat happens if you sleep with your contact lenses in?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 28,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5221.436023712158,
+                "output": [
+                    "1. uncover\n2. undo\n3. unite\n4. unique\n5. unleash\n6. unseen\n7. unveil\n8. unravel\n9. unravel\n10. unravel\n11. unravel\n12. unravel\n13. unravel\n14. unravel\n15. unravel\n16. unravel\n17"
+                ],
+                "input": "<|im_start|>system\nGenerate a list of 20 words that start with 'un'<|im_end|>\n<|im_start|>assistant\n"
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "TheBloke/dolphin-2.1-mistral-7B-AWQ",
+            "device_map": "cuda:0",
+            "trust_remote_code": false,
+            "torch_dtype": "torch.bfloat16"
+        },
+        "model_dtype": "torch.bfloat16",
+        "model_loading_time": 56350.33845901489,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 6,
+                    "total_available_memory_gb": 24
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 27
+                }
+            }
+        },
+        "model_device": "cuda:0"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 27,
+                "output_tokens": 95,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 7390.771865844727,
+                "output": [
+                    "radar\n\nA radar (Radio Detection and Ranging) is a detection system that uses radio waves to determine the range, angle, or velocity of objects. It is widely used in aviation for air traffic control and weather forecasting to detect the presence, location, or movement of various targets, such as aircraft, weather formations, and ships. The term \"radar\" is a palindrome, which means it reads the same forward and backward.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nThis palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 16,
+                "output_tokens": 19,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 1127.3863315582275,
+                "output": [
+                    "Why did the pizza maker go broke? Because he just couldn't make enough dough.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nDo you have any jokes about pizza?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 22,
+                "output_tokens": 58,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 2912.3752117156982,
+                "output": [
+                    "A plump parrot named Pete,\nLoved to peck at his perch with glee.\nIn the park, he'd prance,\nWith a purple, polka-dotted pants,\nAnd people would pause to admire his spree.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nCreate a limerick using five words that start with 'p'.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 20,
+                "output_tokens": 89,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4348.868370056152,
+                "output": [
+                    "Sleeping with your contact lenses in is generally not recommended as it can increase the risk of eye infections, corneal ulcers, and other complications. The eyes need to breathe and be hydrated, and wearing contacts for an extended period can deprive the eyes of oxygen and cause dryness. It's best to remove your contact lenses before sleeping to allow your eyes to rest and maintain good eye health.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nWhat happens if you sleep with your contact lenses in?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 22,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4878.839492797852,
+                "output": [
+                    "1. uncover\n2. undo\n3. unusual\n4. unite\n5. unanimous\n6. unbiased\n7. unbreakable\n8. unconditional\n9. unconventional\n10. undecided\n11. undeniable\n12. underestimate\n13. underprivileged\n14. understatement\n15. underdog\n16. undergo\n17"
+                ],
+                "input": "<|im_start|>system\nGenerate a list of 20 words that start with 'un'<|im_end|>\n<|im_start|>assistant\n"
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "/kaggle/input/ehartford-dolphin-2-1-mistral-7b",
+            "torch_dtype": "torch.bfloat16",
+            "device_map": "cuda:0",
+            "gpu": "p100"
+        },
+        "model_dtype": "torch.bfloat16",
+        "model_loading_time": 113963.79709243774,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 1,
+                    "total_occupied_memory_gb": 16,
+                    "total_available_memory_gb": 0
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 27
+                }
+            }
+        },
+        "model_device": "cuda:0"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 32,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 8374.086141586304,
+                "output": [
+                    "The term \"system\" is often used in various contexts, and in this case, it refers to a method or process for detecting and analyzing patterns or trends. In aviation, a detection system is a tool that helps pilots and air traffic controllers identify potential hazards or issues that may arise during flight. In weather forecasting, a detection system helps meteorologists identify patterns and trends in weather data to make more accurate predictions.\n\nA palindrome is a"
+                ],
+                "input": "<|im_start|>system\nThis palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 22,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4537.5425815582275,
+                "output": [
+                    "Why did the pizza maker go broke? Because he didn't have the right ingredients.\n\nWhy did the pizza maker go broke? Because he kept throwing his dough around.\n\nWhy did the pizza maker go broke? Because he couldn't find the right toppings.\n\nWhy did the pizza maker go broke? Because he kept trying to make square circles.\n\nWhy did the pizza maker go broke? Because he kept trying to make a pizza that was too hot."
+                ],
+                "input": "<|im_start|>system\nDo you have any jokes about pizza?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 28,
+                "output_tokens": 60,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 2732.787609100342,
+                "output": [
+                    "A penguin named Pete from Peru,\nPaddled in pools, his favorite pursuit.\nHe'd plunge and he'd play,\nIn the sun's warm ray,\nWith a pebble in his beak, he'd scoot.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nCreate a limerick using five words that start with 'p'.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 26,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4484.954357147217,
+                "output": [
+                    "Sleeping with your contact lenses in is not recommended as it can increase the risk of eye infections, corneal ulcers, and other complications. The lens can restrict oxygen flow to the cornea, which is essential for maintaining eye health. Additionally, the lens can accumulate debris and bacteria while you sleep, further increasing the risk of infection. It's best to remove your contact lenses before going to bed and to follow your eye care professional's recommendations for proper lens"
+                ],
+                "input": "<|im_start|>system\nWhat happens if you sleep with your contact lenses in?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 28,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4519.822597503662,
+                "output": [
+                    "1. uncover\n2. undo\n3. unite\n4. unique\n5. unleash\n6. unseen\n7. unveil\n8. unravel\n9. unravel\n10. unravel\n11. unravel\n12. unravel\n13. unravel\n14. unravel\n15. unravel\n16. unravel\n17"
+                ],
+                "input": "<|im_start|>system\nGenerate a list of 20 words that start with 'un'<|im_end|>\n<|im_start|>assistant\n"
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "TheBloke/dolphin-2.1-mistral-7B-AWQ",
+            "device_map": "cuda:0",
+            "trust_remote_code": false,
+            "torch_dtype": "torch.float16",
+            "gpu": "t4_2x"
+        },
+        "model_dtype": "torch.float16",
+        "model_loading_time": 38718.88041496277,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 6,
+                    "total_available_memory_gb": 24
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 27
+                }
+            }
+        },
+        "model_device": "cuda:0"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 32,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 10466.36152267456,
+                "output": [
+                    "The term \"system\" is often used in various contexts, and in this case, it refers to a method or process for detecting and analyzing patterns or trends. In aviation, a detection system is a tool that helps pilots and air traffic controllers identify potential hazards or issues that may arise during flight. In weather forecasting, a detection system helps meteorologists identify patterns and trends in weather data to make more accurate predictions.\n\nA palindrome is a"
+                ],
+                "input": "<|im_start|>system\nThis palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 22,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4694.098711013794,
+                "output": [
+                    "Why did the pizza maker go broke? Because he didn't have the right ingredients.\n\nWhy did the pizza maker go broke? Because he kept throwing his dough around.\n\nWhy did the pizza maker go broke? Because he couldn't find the right toppings.\n\nWhy did the pizza maker go broke? Because he kept trying to make square circles.\n\nWhy did the pizza maker go broke? Because he kept trying to make a pizza that was too hot."
+                ],
+                "input": "<|im_start|>system\nDo you have any jokes about pizza?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 28,
+                "output_tokens": 60,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 2870.316982269287,
+                "output": [
+                    "A penguin named Pete from Peru,\nPaddled in pools, his favorite pursuit.\nHe'd plunge and he'd play,\nIn the sun's warm ray,\nWith a pebble in his beak, he'd scoot.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\nCreate a limerick using five words that start with 'p'.<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 26,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4669.342041015625,
+                "output": [
+                    "Sleeping with your contact lenses in is not recommended as it can increase the risk of eye infections, corneal ulcers, and other complications. The lens can restrict oxygen flow to the cornea, which is essential for maintaining eye health. Additionally, the lens can accumulate debris and bacteria while you sleep, further increasing the risk of infection. It's best to remove your contact lenses before going to bed and to follow your eye care professional's recommendations for proper lens"
+                ],
+                "input": "<|im_start|>system\nWhat happens if you sleep with your contact lenses in?<|im_end|>\n<|im_start|>assistant\n"
+            },
+            {
+                "input_tokens": 28,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4684.058427810669,
+                "output": [
+                    "1. uncover\n2. undo\n3. unite\n4. unique\n5. unleash\n6. unseen\n7. unveil\n8. unravel\n9. unravel\n10. unravel\n11. unravel\n12. unravel\n13. unravel\n14. unravel\n15. unravel\n16. unravel\n17"
+                ],
+                "input": "<|im_start|>system\nGenerate a list of 20 words that start with 'un'<|im_end|>\n<|im_start|>assistant\n"
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "TheBloke/dolphin-2.1-mistral-7B-AWQ",
+            "device_map": "cuda:0",
+            "revision": "refs/pr/1",
+            "gpu": "t4_2x"
+        },
+        "model_dtype": "torch.float16",
+        "model_loading_time": 38744.75073814392,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 6,
+                    "total_available_memory_gb": 24
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 28
+                }
+            }
+        },
+        "model_device": "cuda:0"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 51,
+                "output_tokens": 97,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 11121.046304702759,
+                "output": [
+                    "The palindrome you are referring to is \"radar.\" Radar, which stands for Radio Detection and Ranging, is a system that uses radio waves to detect and locate objects, such as aircraft and weather patterns. It is widely used in aviation and weather forecasting to monitor air traffic and track weather systems. The word \"radar\" is a palindrome because it reads the same backward and forward, which is a characteristic of palindromes.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    This palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 40,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5801.121234893799,
+                "output": [
+                    "1. Why did the pizza maker go broke? Because he kept throwing his dough away.\n    2. What did the pizza say to the chef? \"I'm feeling a little crusty.\"\n    3. Why did the pizza maker go to the doctor? He was feeling a little doughy.\n    4. Why did the pizza maker go to the gym? He wanted to get in shape for the dough tossing competition.\n    5. Why did the pizza maker"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Do you have any jokes about pizza?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 65,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 3804.8744201660156,
+                "output": [
+                    "A parrot named Pete from Peru,\n    Painted his plumage with pride and new.\n    With a peacock's plumage,\n    He'd prance and he'd plume,\n    In the park, he'd perform for the few.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Create a limerick using five words that start with 'p'.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 44,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5739.362716674805,
+                "output": [
+                    "Sleeping with contact lenses in can potentially lead to several issues, including:\n\n1. Discomfort: Wearing contact lenses for an extended period can cause discomfort and dryness in your eyes.\n\n2. Infection: Sleeping with contacts in can increase the risk of bacterial or fungal infections, as the lenses can trap bacteria and prevent proper oxygen flow to the cornea.\n\n3. Corneal ulcers: In severe cases"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    What happens if you sleep with your contact lenses in?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5821.863889694214,
+                "output": [
+                    "1. Unhappy\n2. Unusual\n3. Unpredictable\n4. Unbelievable\n5. Uncomfortable\n6. Unaware\n7. Unfair\n8. Unfortunate\n9. Unusual\n10. Unkind\n11. Unseen\n12. Unsteady\n13. Unwanted\n14. Unwilling\n15. Unusual\n16. Unusual"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Generate a list of 20 words that start with 'un'<|im_end|>\n    <|im_start|>assistant\n    "
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "TheBloke/dolphin-2.2.1-mistral-7B-GPTQ",
+            "device_map": "auto",
+            "trust_remote_code": false,
+            "revision": "gptq-4bit-32g-actorder_True",
+            "gpu": "t4_2x"
+        },
+        "model_dtype": "torch.float16",
+        "model_loading_time": 5708.46152305603,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 13,
+                    "total_available_memory_gb": 17
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 22
+                }
+            }
+        },
+        "model_device": "cuda:0",
+        "model_quantization": "gptq"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 51,
+                "output_tokens": 76,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5728.895425796509,
+                "output": [
+                    "The palindrome you're referring to is \"RAINRAIN.\" It is used in aviation and weather forecasting to describe a situation where rain is expected to fall for an extended period of time. The term \"RAINRAIN\" is a mnemonic device that helps pilots and meteorologists remember the continuous nature of the rainfall.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    This palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 40,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 6011.467933654785,
+                "output": [
+                    "1. Why did the pizza maker go broke? Because he kept throwing his dough away.\n    2. What did the pizza say to the chef? \"I'm feeling a little crusty.\"\n    3. Why did the pizza maker go to the doctor? He was feeling a little doughy.\n    4. Why did the pizza maker go to the gym? He wanted to get in shape for the dough tossing competition.\n    5. Why did the pizza maker"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Do you have any jokes about pizza?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 64,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 3795.2120304107666,
+                "output": [
+                    "A parrot named Pete from Peru,\n    Painted his plumage with pride and new.\n    With a peacock's plumage,\n    He'd prance and he'd hum,\n    In the park, he'd perform for the few.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Create a limerick using five words that start with 'p'.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 44,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5920.3081130981445,
+                "output": [
+                    "Sleeping with contact lenses in can lead to several potential issues, including:\n\n1. Discomfort: Wearing contact lenses for an extended period can cause discomfort, dryness, and irritation in your eyes.\n\n2. Infection: Sleeping with contacts in can increase the risk of bacterial or fungal infections, as the lenses can trap bacteria and prevent proper oxygen flow to the cornea.\n\n3. Corneal ulcers"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    What happens if you sleep with your contact lenses in?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5952.75092124939,
+                "output": [
+                    "1. Unhappy\n2. Unusual\n3. Unpredictable\n4. Unbelievable\n5. Uncomfortable\n6. Unaware\n7. Unfair\n8. Unfortunate\n9. Unusual\n10. Unkind\n11. Unseen\n12. Unsteady\n13. Unwanted\n14. Unwilling\n15. Unusual\n16. Unusual"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Generate a list of 20 words that start with 'un'<|im_end|>\n    <|im_start|>assistant\n    "
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "TheBloke/dolphin-2.2.1-mistral-7B-GPTQ",
+            "device_map": "auto",
+            "trust_remote_code": false,
+            "revision": "gptq-4bit-32g-actorder_True",
+            "gpu": "t4_2x",
+            "exllama_version": "v2"
+        },
+        "model_dtype": "torch.float16",
+        "model_loading_time": 17687.15000152588,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 9,
+                    "total_available_memory_gb": 21
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 27
+                }
+            }
+        },
+        "model_device": "cuda:0",
+        "model_quantization": "gptq"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 51,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 36445.45841217041,
+                "output": [
+                    "The palindrome you are referring to is \"radar.\" It is a detection system used in aviation and weather forecasting. Radar stands for Radio Detection and Ranging, and it works by emitting radio waves that bounce off objects and return to the radar system, allowing it to detect and track the location and movement of these objects. In aviation, radar is used to monitor air traffic and guide aircraft, while in weather forecasting, it helps meteor"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    This palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 40,
+                "output_tokens": 21,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 6504.498481750488,
+                "output": [
+                    "Why did the pizza maker go broke?\n    Because he kept throwing his dough away.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Do you have any jokes about pizza?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 58,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 17648.874759674072,
+                "output": [
+                    "A penguin named Pete from Peru,\n    Paddled in the Pacific so blue.\n    He'd play with the plankton,\n    In the purple and pink dawn,\n    And ponder life's sweet, simple cue.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Create a limerick using five words that start with 'p'.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 44,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 30311.31410598755,
+                "output": [
+                    "Sleeping with your contact lenses in is generally not recommended, as it can lead to several potential problems:\n\n1. Discomfort: Your eyes may feel dry, irritated, or uncomfortable when you wake up.\n\n2. Infection: Sleeping with contacts can increase the risk of eye infections, as the lenses can trap bacteria and other microorganisms against your eyes.\n\n3. Corneal ulcers: In severe cases, an eye infection"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    What happens if you sleep with your contact lenses in?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 30323.398113250732,
+                "output": [
+                    "1. uncover\n2. understand\n3. unveil\n4. unravel\n5. unleash\n6. unite\n7. unify\n8. unison\n9. unison\n10. unison\n11. unison\n12. unison\n13. unison\n14. unison\n15. unison\n16. unison\n17. unison\n18. unison"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Generate a list of 20 words that start with 'un'<|im_end|>\n    <|im_start|>assistant\n    "
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "TheBloke/dolphin-2.2.1-mistral-7B-GPTQ",
+            "device_map": "auto",
+            "trust_remote_code": false,
+            "revision": "gptq-8bit-32g-actorder_True",
+            "gpu": "t4_2x"
+        },
+        "model_dtype": "torch.float16",
+        "model_loading_time": 210793.8187122345,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 11,
+                    "total_available_memory_gb": 19
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 26
+                }
+            }
+        },
+        "model_device": "cuda:0",
+        "model_quantization": "gptq"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 51,
+                "output_tokens": 75,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4186.352729797363,
+                "output": [
+                    "The palindrome you are referring to is \"MESA\". It is a type of detection system used in aviation and weather forecasting. MESA stands for \"Meteorological Satellite Analysis\" and is used to analyze and interpret data from meteorological satellites to provide weather forecasts and other meteorological information.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    This palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 40,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5658.844709396362,
+                "output": [
+                    "1. Why did the pizza maker go broke? Because he couldn't make enough dough.\n    2. Why did the pizza delivery guy get a promotion? Because he had the most toppings on his pizza.\n    3. Why did the pizza maker go to the gym? He wanted to add more toppings to his pizza.\n    4. Why did the pizza maker become a detective? He was always looking for the best toppings.\n    5. Why"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Do you have any jokes about pizza?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 61,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 3581.7160606384277,
+                "output": [
+                    "A penguin named Pete from Peru,\n    Pined for a peach, oh so true.\n    He'd prance and he'd preen,\n    In the presence of the queen,\n    Of the peach tree, his heart was through.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Create a limerick using five words that start with 'p'.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 44,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5760.256767272949,
+                "output": [
+                    "1. Discomfort: Sleeping with contact lenses in can cause discomfort due to the lenses pressing against your eyes while you sleep.\n    2. Dryness: Your eyes may feel dry and irritated after waking up.\n    3. Infection: Sleeping with contact lenses in increases the risk of eye infections, as the lenses can trap bacteria and other microorganisms against your eyes.\n    4. Corneal ulcers: In severe cases"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    What happens if you sleep with your contact lenses in?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5668.0402755737305,
+                "output": [
+                    "1. Uncover\n2. Understand\n3. Undo\n4. Unfold\n5. Unite\n6. Unleash\n7. Unravel\n8. Unveil\n9. Unwind\n10. Unseen\n11. Unusual\n12. Unpredictable\n13. Unbelievable\n14. Uncomfortable\n15. Unhappy\n16. Unkind\n17. Un"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Generate a list of 20 words that start with 'un'<|im_end|>\n    <|im_start|>assistant\n    "
+            }
+        ],
+        "model_loading_params": {
+            "model_name_or_path": "TheBloke/dolphin-2.2.1-mistral-7B-GPTQ",
+            "low_cpu_mem_usage": true,
+            "use_cuda_fp16": true,
+            "use_safetensors": true,
+            "inject_fused_attention": true,
+            "inject_fused_mlp": true,
+            "warmup_triton": false,
+            "quantize_config": null,
+            "gpu": "t4_2x"
+        },
+        "model_dtype": "torch.float16",
+        "model_loading_time": 7646.041631698608,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 16,
+                    "total_available_memory_gb": 14
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 22
+                }
+            }
+        },
+        "model_device": "cuda:0"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 51,
+                "output_tokens": 75,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4313.391208648682,
+                "output": [
+                    "The palindrome you are referring to is \"MESA\". It is a type of detection system used in aviation and weather forecasting. MESA stands for \"Meteorological Satellite Analysis\" and is used to analyze and interpret data from meteorological satellites to provide weather forecasts and other meteorological information.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    This palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 40,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5678.122758865356,
+                "output": [
+                    "1. Why did the pizza maker go broke? Because he couldn't make enough dough.\n    2. Why did the pizza delivery guy get a promotion? Because he had the most toppings on his pizza.\n    3. Why did the pizza maker go to the gym? He wanted to add more toppings to his pizza.\n    4. Why did the pizza maker become a detective? He was always looking for the best toppings.\n    5. Why"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Do you have any jokes about pizza?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 61,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 3598.1550216674805,
+                "output": [
+                    "A penguin named Pete from Peru,\n    Pined for a peach, oh so true.\n    He'd prance and he'd preen,\n    In the presence of the queen,\n    Of the peach tree, his heart was through.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Create a limerick using five words that start with 'p'.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 44,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5693.333148956299,
+                "output": [
+                    "1. Discomfort: Sleeping with contact lenses in can cause discomfort due to the lenses pressing against your eyes while you sleep.\n    2. Dryness: Your eyes may feel dry and irritated after waking up.\n    3. Infection: Sleeping with contact lenses in increases the risk of eye infections, as the lenses can trap bacteria and other microorganisms against your eyes.\n    4. Corneal ulcers: In severe cases"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    What happens if you sleep with your contact lenses in?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5848.707437515259,
+                "output": [
+                    "1. Uncover\n2. Understand\n3. Undo\n4. Unfold\n5. Unite\n6. Unleash\n7. Unravel\n8. Unveil\n9. Unwind\n10. Unseen\n11. Unusual\n12. Unpredictable\n13. Unbelievable\n14. Uncomfortable\n15. Unhappy\n16. Unkind\n17. Un"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Generate a list of 20 words that start with 'un'<|im_end|>\n    <|im_start|>assistant\n    "
+            }
+        ],
+        "model_loading_params": {
+            "model_name_or_path": "TheBloke/dolphin-2.2.1-mistral-7B-GPTQ",
+            "use_cuda_fp16": true,
+            "use_safetensors": true,
+            "inject_fused_attention": true,
+            "inject_fused_mlp": true,
+            "warmup_triton": false,
+            "quantize_config": null,
+            "gpu": "t4_2x"
+        },
+        "model_dtype": "torch.float16",
+        "model_loading_time": 8991.24789237976,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 16,
+                    "total_available_memory_gb": 14
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 20
+                }
+            }
+        },
+        "model_device": "cuda:0"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 51,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4912.110090255737,
+                "output": [
+                    "The palindrome you are referring to is \"MESA\". It is a type of detection system used in aviation and weather forecasting. MESA stands for \"Meteorological Satellite Analysis\" and is used to analyze weather patterns and provide information on cloud formations, storms, and other meteorological phenomena. This system helps pilots and meteorologists to make informed decisions about flight routes and weather-related events.<|im_end|> \n    <|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    This palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 40,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 1979.2451858520508,
+                "output": [
+                    "1. Why did the pizza maker go broke? Because he couldn't make enough dough.\n    2. Why did the pizza delivery guy get a promotion? Because he had the most toppings on his pizza.\n    3. Why did the pizza maker go to the gym? He wanted to add more toppings to his pizza.\n    4. Why did the pizza maker become a detective? He was always looking for the best toppings.\n    5. Why"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Do you have any jokes about pizza?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 1987.070083618164,
+                "output": [
+                    "A penguin named Pete from Peru,\n    Pined for a peach, oh so true.\n    He'd prance and he'd preen,\n    In the presence of the queen,\n    Of the peach tree, his heart was through.<|im_end|> \n    <|im_end|> \n    <|im_end|> \n   <|im_end|> \n   <|im_end|> \n   <|im_end|> \n   <|im_end|> \n   <|im_end|> \n   <|im_end|> \n   <|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Create a limerick using five words that start with 'p'.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 44,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 2013.8349533081055,
+                "output": [
+                    "1. Discomfort: Sleeping with contact lenses in can cause discomfort due to the lenses pressing against your eyes while you sleep.\n    2. Dryness: Your eyes may feel dry and irritated after waking up.\n    3. Infection: Sleeping with contact lenses in increases the risk of eye infections, as the lenses can trap bacteria and other microorganisms against your eyes.\n    4. Corneal ulcers: In severe cases"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    What happens if you sleep with your contact lenses in?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 1978.6922931671143,
+                "output": [
+                    "1. Uncover\n2. Understand\n3. Undo\n4. Unfold\n5. Unite\n6. Unleash\n7. Unravel\n8. Unveil\n9. Unwind\n10. Unseen\n11. Unusual\n12. Unpredictable\n13. Unbelievable\n14. Uncomfortable\n15. Unhappy\n16. Unkind\n17. Un"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Generate a list of 20 words that start with 'un'<|im_end|>\n    <|im_start|>assistant\n    "
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "/kaggle/input/thebloke-dolphin-2-2-1-mistral-7b-gptq",
+            "gpu": "t4_2x"
+        },
+        "model_dtype": null,
+        "model_loading_time": 3675.4982471466064,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 10,
+                    "total_available_memory_gb": 20
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 28
+                }
+            }
+        },
+        "model_device": "cuda:0"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 51,
+                "output_tokens": 75,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5563.295364379883,
+                "output": [
+                    "The palindrome you are referring to is \"MESA\". It is a type of detection system used in aviation and weather forecasting. MESA stands for \"Meteorological Satellite Analysis\" and is used to analyze and interpret data from meteorological satellites to provide weather forecasts and other meteorological information.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    This palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 40,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4829.9970626831055,
+                "output": [
+                    "1. Why did the pizza maker go broke? Because he couldn't make enough dough.\n    2. Why did the pizza delivery guy get a promotion? Because he had the most toppings on his pizza.\n    3. Why did the pizza maker go to the gym? He wanted to add more toppings to his pizza.\n    4. Why did the pizza maker become a detective? He was always looking for the best toppings.\n    5. Why"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Do you have any jokes about pizza?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 61,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 3032.7606201171875,
+                "output": [
+                    "A penguin named Pete from Peru,\n    Pined for a peach, oh so true.\n    He'd prance and he'd preen,\n    In the presence of the queen,\n    Of the peach tree, his heart was through.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Create a limerick using five words that start with 'p'.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 44,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4772.451877593994,
+                "output": [
+                    "1. Discomfort: Sleeping with contact lenses in can cause discomfort due to the lenses pressing against your eyes while you sleep.\n    2. Dryness: Your eyes may feel dry and irritated after waking up.\n    3. Infection: Sleeping with contact lenses in increases the risk of eye infections, as the lenses can trap bacteria and other microorganisms against your eyes.\n    4. Corneal ulcers: In severe cases"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    What happens if you sleep with your contact lenses in?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 4885.483264923096,
+                "output": [
+                    "1. Uncover\n2. Understand\n3. Undo\n4. Unfold\n5. Unite\n6. Unleash\n7. Unravel\n8. Unveil\n9. Unwind\n10. Unseen\n11. Unusual\n12. Unpredictable\n13. Unbelievable\n14. Uncomfortable\n15. Unhappy\n16. Unkind\n17. Un"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Generate a list of 20 words that start with 'un'<|im_end|>\n    <|im_start|>assistant\n    "
+            }
+        ],
+        "model_loading_params": {
+            "model_name_or_path": "TheBloke/dolphin-2.2.1-mistral-7B-GPTQ",
+            "use_cuda_fp16": false,
+            "use_safetensors": true,
+            "inject_fused_attention": true,
+            "inject_fused_mlp": true,
+            "warmup_triton": false,
+            "quantize_config": null,
+            "gpu": "t4_2x"
+        },
+        "model_dtype": "torch.float16",
+        "model_loading_time": 8424.471139907837,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 19,
+                    "total_available_memory_gb": 11
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 18
+                }
+            }
+        },
+        "model_device": "cuda:0"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 51,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5116.734743118286,
+                "output": [
+                    "The palindrome you are referring to is \"radar.\" It is an acronym for \"Radio Detection and Ranging,\" which is a system used in aviation and weather forecasting. Radar systems use radio waves to detect and locate objects, such as aircraft or weather phenomena, by bouncing radio waves off them and measuring the time delay between transmission and reception. This information is then used to create images or maps of the area being monitored.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    This palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 40,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 2335.705280303955,
+                "output": [
+                    "Why did the pizza maker go broke? Because he kept throwing his pies.<|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|> \n    <|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Do you have any jokes about pizza?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 2384.9174976348877,
+                "output": [
+                    "A penguin named Pete from Peru,\n    Paddled in the Pacific blue.\n    He'd plunge and play,\n    In the sun's warm ray,\n    A perfect picture of pure fun.<|im_end|> \n    <|im_end|> \n    <|im_end|> \n\n<|im_end|> \n\n<|im_end|> \n\n<|im_end|> \n\n<|im_end|> \n\n<|im_end|> \n\n<|im_end|> \n\n<|im_end|> \n\n<|im_end|> \n\n<|im_end|> \n\n<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Create a limerick using five words that start with 'p'.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 44,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 2423.572778701782,
+                "output": [
+                    "Sleeping with contact lenses in is not recommended, as it can lead to several potential problems. These include:\n\n1. Corneal Abrasion: The lenses can scratch the cornea, which is the clear, front surface of the eye. This can cause pain, discomfort, and blurred vision.\n\n2. Infection: Sleeping with lenses in can increase the risk of eye infections, as the lenses can trap bacteria and other"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    What happens if you sleep with your contact lenses in?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 46,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 2350.088596343994,
+                "output": [
+                    "1. uncover\n    2. undo\n    3. unveil\n    4. unravel\n    5. unleash\n    6. unify\n    7. unison\n    8. unison\n    9. unison\n    10. unison\n    11. unison\n    12. unison\n    13. unison\n    14. unison\n    15. unison\n    1"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Generate a list of 20 words that start with 'un'<|im_end|>\n    <|im_start|>assistant\n    "
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "/kaggle/input/ls-dolphin-2-2-1-mistral-7b-4-0bpw-h6-exl2",
+            "gpu": "t4_2x"
+        },
+        "model_dtype": null,
+        "model_loading_time": 56271.1067199707,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 5,
+                    "total_available_memory_gb": 25
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 29
+                }
+            }
+        },
+        "model_device": "cuda:0"
+    }
+]
