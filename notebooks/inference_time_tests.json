@@ -1217,5 +1217,91 @@
             }
         },
         "model_device": "cuda:0"
+    },
+    {
+        "sample_metrics": [
+            {
+                "input_tokens": 45,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 24706.207513809204,
+                "output": [
+                    "The palindrome you are referring to is \"Doppler.\" Doppler radar is a type of detection system used in aviation and weather forecasting. It works by emitting radio waves that bounce off objects in the atmosphere, such as rain or snow, and then measuring the time it takes for the waves to return. This information is used to determine the speed and direction of weather systems, as well as the intensity of precipitation. The name \"Doppler\" is a pal"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    This palindrome is a type of detection system used in aviation and weather forecasting.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 34,
+                "output_tokens": 20,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 2328.278064727783,
+                "output": [
+                    "Why was the pizza so humble? Because it knew it couldn't be topped.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Do you have any jokes about pizza?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 40,
+                "output_tokens": 58,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 5533.541917800903,
+                "output": [
+                    "A parrot named Pete from Peru,\n    Was known for his playful demeanor.\n    He'd peck and he'd preen,\n    In the palm trees, so green,\n    And his plumage was always pristine.<|im_end|>"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Create a limerick using five words that start with 'p'.<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 38,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 9215.090036392212,
+                "output": [
+                    "1. Discomfort: Sleeping with contact lenses can cause discomfort due to the lenses pressing against your eyes for an extended period.\n\n2. Reduced oxygen supply: Contact lenses are designed to allow oxygen to reach your cornea. Sleeping with them on can reduce the amount of oxygen reaching your eyes, potentially causing discomfort and even damage to the cornea.\n\n3. Infection: Sleeping with contact lenses increases the risk of eye infections,"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    What happens if you sleep with your contact lenses in?<|im_end|>\n    <|im_start|>assistant\n    "
+            },
+            {
+                "input_tokens": 40,
+                "output_tokens": 100,
+                "gen_args": {
+                    "max_new_tokens": 100
+                },
+                "gen_latency": 9274.02377128601,
+                "output": [
+                    "1. uncover\n2. undo\n3. unite\n4. unique\n5. unleash\n6. unravel\n7. unveil\n8. unpredictable\n9. unbiased\n10. unconventional\n11. underestimate\n12. undermine\n13. unmask\n14. unravel\n15. unplug\n16. unravel\n17. un"
+                ],
+                "input": "<|im_start|>system\n    You are Dolphin, a helpful AI assistant.<|im_end|>\n    <|im_start|>user\n    Generate a list of 20 words that start with 'un'<|im_end|>\n    <|im_start|>assistant\n    "
+            }
+        ],
+        "model_loading_params": {
+            "pretrained_model_name_or_path": "/kaggle/input/ehartford-dolphin-2-1-mistral-7b",
+            "quantization_config": "BitsAndBytesConfig {\n  \"bnb_4bit_compute_dtype\": \"bfloat16\",\n  \"bnb_4bit_quant_type\": \"nf4\",\n  \"bnb_4bit_use_double_quant\": true,\n  \"llm_int8_enable_fp32_cpu_offload\": false,\n  \"llm_int8_has_fp16_weight\": false,\n  \"llm_int8_skip_modules\": null,\n  \"llm_int8_threshold\": 6.0,\n  \"load_in_4bit\": true,\n  \"load_in_8bit\": false,\n  \"quant_method\": \"bitsandbytes\"\n}\n",
+            "gpu": "t4_2x"
+        },
+        "model_dtype": "torch.float16",
+        "model_loading_time": 117026.34000778198,
+        "hardware_info": {
+            "post_loading": {
+                "gpu_info": {
+                    "total_available_gpus": 2,
+                    "total_occupied_memory_gb": 6,
+                    "total_available_memory_gb": 24
+                },
+                "ram_info": {
+                    "total_ram_gb": 32,
+                    "total_available_ram_gb": 27
+                }
+            }
+        },
+        "model_device": "cuda:0",
+        "model_quantization": "bitsandbytes"
     }
 ]
