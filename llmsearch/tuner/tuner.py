@@ -15,6 +15,7 @@ from sklearn.metrics import make_scorer
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
 
 from llmsearch.utils.model_utils import infer_data
+from llmsearch.utils.mem_utils import cache
 
 from llmsearch.utils.logging_utils import get_logger
 
@@ -299,6 +300,9 @@ class Tuner:
             tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
         )
         self.output_preproc = output_preproc
+
+        # reset cache on every init
+        cache.empty_cache()
 
     def get_default_input_tokenizer_kwargs(
         self,
