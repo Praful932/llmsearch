@@ -254,13 +254,14 @@ class Tuner:
         self.tokenizer = tokenizer
         self.prompt_template = prompt_template
         self.column_mapping = column_mapping
-        # Map prompt template to dataset
         self.input_cols = column_mapping["input_cols"]
         self.eval_cols = column_mapping["eval_cols"]
+
+        # Map prompt template to dataset
         self.dataset = dataset.map(
             lambda sample: {
                 "X": self.prompt_template.format(
-                    **{item: item for item in self.input_cols}
+                    **{input_col: sample[input_col] for input_col in self.input_cols}
                 )
             }
         )
