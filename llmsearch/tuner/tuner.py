@@ -204,6 +204,7 @@ class LLMEstimatorWrapper(BaseEstimator):
         return model_generation_params
 
 
+
 class Tuner:
     """Tuner Class which drives the search for the generation hyperparameters"""
 
@@ -254,12 +255,13 @@ class Tuner:
         self.prompt_template = prompt_template
         self.column_mapping = column_mapping
         # Map prompt template to dataset
+        self.input_cols = column_mapping["input_cols"]
+        self.eval_cols = column_mapping["eval_cols"]
         self.dataset = dataset.map(
             lambda sample: {
                 "X": self.prompt_template.format(
-                    X=sample[column_mapping["text_column_name"]]
-                ),
-                "y": sample[column_mapping["label_column_name"]],
+                    **{item: item for item in self.input_cols}
+                )
             }
         )
         self.device = device
@@ -321,9 +323,9 @@ class Tuner:
         logger.info(
             "Computing tokenizer encoding arguments using a sample of the dataset..."
         )
-        sample_size = int(len(self.dataset["y"]) * sample_ratio)
+        sample_size = int(len(self.dataset["X"]) * sample_ratio)
         random.seed(self.seed)
-        sample_indexes = random.sample(range(0, len(self.dataset["y"])), sample_size)
+        sample_indexes = random.sample(range(0, len(self.dataset["X"])), sample_size)
         get_items = itemgetter(*sample_indexes)
         X = get_items(self.dataset["X"])
         # Calculate max_length
@@ -357,7 +359,6 @@ class Tuner:
             Tuple[float, List]: score, predictions
         """
         dataset_to_evaluate = dataset if dataset else self.dataset
-        y_true = dataset_to_evaluate["y"]
         y_pred = infer_data(
             model=self.estimator.model,
             tokenizer=self.tokenizer,
@@ -372,7 +373,9 @@ class Tuner:
             disable_generation_param_checks=self.disable_generation_param_checks,
             output_preproc=self.output_preproc,
         )
-        score = self.score_func(y_true=y_true, y_pred=y_pred)
+        score = self.score_func(
+            **{col: self.dataset[col] for col in self.eval_cols}, y_pred=y_pred
+        )
         return score, y_pred
 
     def get_value_at_quantile(self, input_list: List, quantile: float) -> int:
