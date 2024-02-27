@@ -263,7 +263,10 @@ class Tuner:
             lambda sample: {
                 "X": self.prompt_template.format(
                     **{input_col: sample[input_col] for input_col in self.input_cols}
-                )
+                ),
+                "y": {
+                    eval_col : sample[eval_col] for eval_col in self.eval_cols
+                }
             }
         )
         self.device = device
@@ -379,7 +382,7 @@ class Tuner:
             output_preproc=self.output_preproc,
         )
         score = self.score_func(
-            **{col: self.dataset[col] for col in self.eval_cols}, y_pred=y_pred
+            y_true=self.dataset['y'], y_pred=y_pred
         )
         return score, y_pred
 
