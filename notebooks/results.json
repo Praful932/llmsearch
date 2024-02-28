@@ -1,0 +1,5 @@
+{
+    "old_score": 0.47,
+    "new_score": 0.48,
+    "best_params": "{'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 25, 'no_repeat_ngram_size': 0, 'pad_token_id': 50256, 'stopping_criteria': [<__main__.SingleTokenStoppingCriteria object at 0x7f83340bac80>], 'temperature': 0.5, 'top_k': 50}"
+}
