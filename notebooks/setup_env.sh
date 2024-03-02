@@ -17,3 +17,6 @@ git clone "$auth_url" "/workspace/${repo_name}"
 
 # Install poetry
 curl -sSL https://install.python-poetry.org | python3 -
+
+git config --global user.email "praful.mohanan@gmail.com"
+git config --global user.name "praful932"
