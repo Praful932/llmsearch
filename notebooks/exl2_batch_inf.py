@@ -1,13 +1,96 @@
 import torch, os
+import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional, List, Union, Dict
-from transformers import AutoConfig, PretrainedConfig
+from transformers import AutoConfig, PretrainedConfig, AutoTokenizer
 from transformers.generation.utils import GenerationMixin, GenerationConfig
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
 from exllamav2 import ExLlamaV2, ExLlamaV2Cache, ExLlamaV2Config, ExLlamaV2Lora
 #https://github.com/turboderp/exllamav2/issues/232
+
+import sys
+sys.path.append('/workspace/llmsearch')
+
+import textwrap
+import gc
+import torch
+import ctypes
+
+import nltk
+import torch
+import random
+import evaluate
+import datasets
+import langchain
+import numpy as np
+import transformers
+from transformers.modeling_outputs import CausalLMOutputWithPast
+from transformers import PreTrainedModel, PretrainedConfig, GenerationConfig, StoppingCriteria, AutoTokenizer, StoppingCriteriaList
+
+import os
+import gc
+import ctypes
+import traceback
+from pathlib import Path
+from typing import Any, Dict, Optional, Union, List
+
+from datasets import load_dataset
+
+class SingleTokenStoppingCriteria(StoppingCriteria):
+    """End generation if end token is encountered
+    does not support batched implementation yet"""
+
+    def __init__(self, token_id):
+      super().__init__()
+      self.token_id =  token_id
+
+    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor):
+        res = []
+
+        last_token_id = input_ids[0][-1]
+        if last_token_id == self.token_id:
+            return True
+        return False
+
+stopping_criteria = StoppingCriteriaList([SingleTokenStoppingCriteria(token_id=32000)])
+
+
+
+def get_samples(n):
+
+    text = textwrap.dedent("""\
+    Q: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?
+    A: There are 15 trees originally. Then there were 21 trees after some more were planted. So there must have been 21 - 15 = 6. The answer is 6.
+
+    Q: If there are 3 cars in the parking lot and 2 more cars arrive, how many cars are in the parking lot?
+    A: There are originally 3 cars. 2 more cars arrive. 3 + 2 = 5. The answer is 5.
+
+    Q: {question}""")
+
+    pt = langchain.PromptTemplate.from_template(text)
+
+    gsm8k_dataset = load_dataset("gsm8k", 'main')
+    sampled_dataset = gsm8k_dataset['train'].shuffle(seed=42).select(range(n))
+
+    texts = []
+
+
+
+    for item in sampled_dataset:
+        formatted_pt = pt.format(question=item['question'])
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a friendly assistant who can solve math problems",
+            },
+            {"role": "user", "content": formatted_pt},
+        ]
+        sample = tokenizer.apply_chat_template(messages, tokenize = False, add_generation_prompt=True)
+        texts.append(sample)
+
+    return texts
 
 class ExLlamaV2ForCausalLM(GenerationMixin):
 
@@ -196,9 +279,7 @@ class ExLlamaV2ForCausalLM(GenerationMixin):
             past_key_values.value_states[i] = past_key_values.value_states[i].index_select(0, beam_idx.to(past_key_values.value_states[i].device))
 
         return past_key_values
-import torch
-import time
-from transformers import AutoTokenizer
+
 
 # load the model and tokenizer
 # model = ExLlamaV2ForCausalLM.from_pretrained('Llama-2-7b-chat', use_flash_attention_2=True)
@@ -206,16 +287,29 @@ model_dir = '/workspace/capybarahermes-2.5-gptq/TheBloke_CapybaraHermes-2.5-Mist
 model = ExLlamaV2ForCausalLM.from_pretrained(model_dir)
 tokenizer = AutoTokenizer.from_pretrained(model_dir)
 
-# make batch of text with same input
-text = ['[INST] What is AI? [/INST]', '[INST] What is AI? [/INST]']
-text = text[:1]
+tokenizer.pad_token = tokenizer.eos_token
 
-inputs = tokenizer(text, return_tensors='pt')
+# make batch of text with same input
+texts = get_samples(n = 4)[2:3]
+
+# print(texts)
+
+inputs = tokenizer(texts,padding=True,max_length=1000, return_tensors='pt')
 
 start = time.time()
 # make generation deterministic
+
+gen_params1 = {
+    'max_new_tokens' : 800,
+    # 'stopping_criteria' : stopping_criteria,
+    # 'generation_seed' : 42,
+}
+
+inputs['input_ids'] = inputs['input_ids'].to('cuda:0')
+inputs['attention_mask'] = inputs['attention_mask'].to('cuda:0')
+
 with torch.inference_mode():
-    outputs = model.generate(**inputs, do_sample=False)
+    outputs = model.generate(**inputs, **gen_params1)
 
 end = time.time()
 latency = (end - start)
