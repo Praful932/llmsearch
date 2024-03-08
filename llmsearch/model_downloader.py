@@ -240,7 +240,8 @@ class ModelDownloader:
                 continue
 
             with open(output_folder / sha256[i][0], "rb") as f:
-                file_hash = hashlib.file_digest(f, "sha256").hexdigest()
+                bytes = f.read()
+                file_hash = hashlib.sha256(bytes).hexdigest()
                 if file_hash != sha256[i][1]:
                     print(f'Checksum failed: {sha256[i][0]}  {sha256[i][1]}')
                     validated = False
@@ -253,19 +254,24 @@ class ModelDownloader:
             print('[-] Invalid checksums. Rerun download-model.py with the --clean flag.')
 
 
-model_id = "TheBloke/CapybaraHermes-2.5-Mistral-7B-GPTQ"
-branch = 'main'
-threads = 4
-save_dir = f'/workspace/capybarahermes-2.5-gptq/'
-max_retries = 5
-
-downloader = ModelDownloader(max_retries=5)
-
-model_id, branch = downloader.sanitize_model_and_branch_names(model_id, branch)
-links, sha256, is_lora, is_llamacpp = downloader.get_download_links_from_huggingface(model_id, branch, text_only=False, specific_file=None)
-
-output_folder = downloader.get_output_folder(model_id, branch, is_lora, is_llamacpp=is_llamacpp, base_folder=save_dir)
 
 
-downloader.download_model_files(model_id, branch, links, sha256, output_folder, specific_file=None, threads=threads, is_llamacpp=is_llamacpp)
+def download_model_from_hf(model_id, save_dir, branch = "main", threads = 4, max_retries = 5):
+
+    downloader = ModelDownloader(max_retries=max_retries)
+
+    model_id, branch = downloader.sanitize_model_and_branch_names(model_id, branch)
+    links, sha256, is_lora, is_llamacpp = downloader.get_download_links_from_huggingface(model_id, branch, text_only=False, specific_file=None)
+
+    output_folder = downloader.get_output_folder(model_id, branch, is_lora, is_llamacpp=is_llamacpp, base_folder=save_dir)
+
+    if Path(output_folder).exists():
+        print(f"Model already exists in {output_folder}. Checking the model files...")
+        downloader.check_model_files(model_id, branch, links, sha256, output_folder)
+        return output_folder
+
+    downloader.download_model_files(model_id, branch, links, sha256, output_folder, specific_file=None, threads=threads, is_llamacpp=is_llamacpp)
+
+    return output_folder
+
 

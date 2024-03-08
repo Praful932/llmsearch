@@ -259,6 +259,7 @@ class Tuner:
         self.eval_cols = column_mapping["eval_cols"]
 
         # Map prompt template to dataset
+        # TODO : Why is apply_chat_template not used here? Where is the system prompt?
         self.dataset = dataset.map(
             lambda sample: {
                 "X": self.prompt_template.format(
