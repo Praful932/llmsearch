@@ -109,6 +109,8 @@ def infer_data(
         encoded_input = tokenizer(
             text=batch, **tokenizer_encoding_kwargs, return_tensors="pt"
         )
+        decoded_input = tokenizer.batch_decode(encoded_input['input_ids'], spaces_between_special_tokens = False)
+
         input_ids = encoded_input.input_ids.to(device)
         attention_mask = encoded_input.attention_mask.to(device)
         output_ids = model.generate(
@@ -121,7 +123,7 @@ def infer_data(
         # remove prompt
         if not is_encoder_decoder:
             decoded_output = decoder_parser(
-                outputs=decoded_output, formatted_prompts=batch, prepoc=output_preproc
+                outputs=decoded_output, formatted_prompts=decoded_input, prepoc=output_preproc
             )
         else:
             decoded_output = encoder_decoder_parser(
