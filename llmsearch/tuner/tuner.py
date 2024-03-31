@@ -38,6 +38,7 @@ class LLMEstimatorWrapper(BaseEstimator):
         tokenizer_decoding_kwargs: Dict = None,
         disable_generation_param_checks: bool = False,
         pred_function: Union[Callable, None] = None,
+        callbacks_after_inference = None,
         **kwargs,
     ):
         """Initializes the Estimator
@@ -54,6 +55,7 @@ class LLMEstimatorWrapper(BaseEstimator):
             tokenizer_decoding_kwargs (Dict, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`
             disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.
             pred_function (Union[Callable, None], optional): Override Prediction Function `.predict` is called. The overriden function should have the signature - `(estimator : LLMEstimatorWrapper, model_inputs : List, generation_params : Dict) -> outputs : List` & should return a list of outputs which can be directly consumed by `scorer` as `y_pred`. Defaults to None.
+            callbacks_after_inference (Union[List[Callable], None], optional): Callbacks to run after each inference, by default None
 
         - All `kwargs` are assumed to be generation params and used when doing Hyperparameter search
         """
@@ -73,6 +75,7 @@ class LLMEstimatorWrapper(BaseEstimator):
             else {"skip_special_tokens": True}
         )
         self.pred_function = pred_function
+        self.callbacks_after_inference = callbacks_after_inference
         self.disable_generation_param_checks = disable_generation_param_checks
         # Set generation params, All kwargs are assumed to be generation params
         for k, v in kwargs.items():
@@ -132,6 +135,7 @@ class LLMEstimatorWrapper(BaseEstimator):
             disable_generation_param_checks=self.disable_generation_param_checks,
             tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
             return_optimal_batch_size=True,
+            callbacks=self.callbacks_after_inference,
         )
         return output
 
@@ -229,6 +233,7 @@ class Tuner:
         sample_ratio: float = 0.3,
         tokenizer_max_length_quantile: float = 0.9,
         output_preproc: Callable = lambda x: x.strip(),
+        callbacks_after_inference: Union[List[Callable], None] = None,
     ):
         """Tuner Class
 
@@ -251,6 +256,7 @@ class Tuner:
             sample_ratio (float, optional): Sampling Ratio of `dataset` to find the ideal values for padding and truncation to batch inputs to the model. Argument is invalid if `tokenizer_encoding_kwargs` is not `None`. Defaults to 0.3.
             tokenizer_max_length_quantile (float, optional): quantile at which the value for `max_length` will be computed using the initialized dataset. Defaults to 0.9.
             output_preproc (Callabale, optional): preprocessing applied to the decoded output(only the completion). Defaults to stripping the ouptut in `infer_data` function.
+            callbacks_after_inference (Union[List[Callable], None], optional): Callback to run after each inference, by default None
         """
         self.tokenizer = tokenizer
         self.prompt_template = prompt_template
@@ -302,6 +308,7 @@ class Tuner:
             disable_batch_size_cache=disable_batch_size_cache,
             tokenizer_encoding_kwargs=self.tokenizer_encoding_kwargs,
             tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
+            callbacks_after_inference=callbacks_after_inference,
         )
         self.output_preproc = output_preproc
 
@@ -381,6 +388,7 @@ class Tuner:
             disable_batch_size_cache=self.disable_batch_size_cache,
             disable_generation_param_checks=self.disable_generation_param_checks,
             output_preproc=self.output_preproc,
+            callbacks=self.estimator.callbacks_after_inference,
         )
         score = self.score_func(
             y_true=self.dataset['y'], y_pred=y_pred

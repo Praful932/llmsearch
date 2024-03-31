@@ -106,7 +106,7 @@ def infer_data(
         (batcher(iterable=model_inputs, batch_size=batch_size)),
         total=math.ceil(len(model_inputs) / batch_size),
     ):
-        print(f"Batch {idx+1}/{math.ceil(len(model_inputs) / batch_size)}")
+        # print(f"Batch {idx+1}/{math.ceil(len(model_inputs) / batch_size)}")
         gc.collect()
         gc_cuda()
         encoded_input = tokenizer(
@@ -167,7 +167,10 @@ def encoder_decoder_parser(outputs: str, prepoc: callable):
 
 def decoder_parser(outputs: List[str], formatted_prompts: List[str], prepoc: callable):
     """Removes the prompt from the text and calls prepoc on the completion"""
-    return [
-        prepoc(output[len(formatted_prompt) :])
-        for output, formatted_prompt in zip(outputs, formatted_prompts)
-    ]
+    ret_val = []
+    for output, formatted_prompt in zip(outputs, formatted_prompts):
+        # print("Formmated prompt: ", formatted_prompt)
+        # print(f"Model output: ", output)
+        # print(f"After preproc: ", prepoc(output[len(formatted_prompt) :]))
+        ret_val.append(prepoc(output[len(formatted_prompt) :]))
+    return ret_val
