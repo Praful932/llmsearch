@@ -59,6 +59,7 @@ def infer_data(
     tokenizer_decoding_kwargs: Dict = None,
     return_optimal_batch_size: bool = False,
     output_preproc: callable = lambda x: x.strip(),
+    callbacks: List = None,
 ) -> Union[Tuple[List, int], List]:
     """Infer on data with a specific batch size
 
@@ -75,6 +76,7 @@ def infer_data(
         tokenizer_decoding_kwargs (_type_, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
         return_optimal_batch_size (bool, optional): if the function should return the optimal batch size found, useful for caching when performing cross validation. Defaults to False.
         output_preproc (Callable, optional): Prepoc to run on the completion, by default strips the output. Note that this is applied on the completion. Defaults to False.
+        callbacks (List, optional): List of callbacks to run after each generation, by default None
 
     Returns:
         Union[Tuple[List, int], List]: outputs and or best batch size
@@ -100,10 +102,11 @@ def infer_data(
         seed = generation_kwargs["generation_seed"]
         seed_everything(seed=seed)
 
-    for batch in tqdm(
-        batcher(iterable=model_inputs, batch_size=batch_size),
+    for idx, batch in tqdm(enumerate
+        (batcher(iterable=model_inputs, batch_size=batch_size)),
         total=math.ceil(len(model_inputs) / batch_size),
     ):
+        print(f"Batch {idx+1}/{math.ceil(len(model_inputs) / batch_size)}")
         gc.collect()
         gc_cuda()
         encoded_input = tokenizer(
@@ -116,6 +119,10 @@ def infer_data(
         output_ids = model.generate(
             inputs=input_ids, attention_mask=attention_mask, **generation_kwargs
         )
+        if callbacks:
+            for callback in callbacks:
+                callback()
+
         decoded_output = tokenizer.batch_decode(
             sequences=output_ids,
             **tokenizer_decoding_kwargs,
