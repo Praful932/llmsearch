@@ -38,7 +38,7 @@ class LLMEstimatorWrapper(BaseEstimator):
         tokenizer_decoding_kwargs: Dict = None,
         disable_generation_param_checks: bool = False,
         pred_function: Union[Callable, None] = None,
-        callbacks_after_inference = None,
+        callbacks_after_inference=None,
         **kwargs,
     ):
         """Initializes the Estimator
@@ -209,7 +209,6 @@ class LLMEstimatorWrapper(BaseEstimator):
         return model_generation_params
 
 
-
 class Tuner:
     """Tuner Class which drives the search for the generation hyperparameters"""
 
@@ -217,6 +216,7 @@ class Tuner:
         self,
         model: Union[AutoModelForCausalLM, AutoModelForSeq2SeqLM],
         tokenizer: AutoTokenizer,
+        # To Remove
         prompt_template: langchain.BasePromptTemplate,
         dataset: Union[Dataset, Dict],
         column_mapping: Dict,
@@ -271,9 +271,7 @@ class Tuner:
                 "X": self.prompt_template.format(
                     **{input_col: sample[input_col] for input_col in self.input_cols}
                 ),
-                "y": {
-                    eval_col : sample[eval_col] for eval_col in self.eval_cols
-                }
+                "y": {eval_col: sample[eval_col] for eval_col in self.eval_cols},
             }
         )
         self.device = device
@@ -390,9 +388,7 @@ class Tuner:
             output_preproc=self.output_preproc,
             callbacks=self.estimator.callbacks_after_inference,
         )
-        score = self.score_func(
-            y_true=self.dataset['y'], y_pred=y_pred
-        )
+        score = self.score_func(y_true=self.dataset["y"], y_pred=y_pred)
         return score, y_pred
 
     def get_value_at_quantile(self, input_list: List, quantile: float) -> int:

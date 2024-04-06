@@ -1,0 +1,13 @@
+reqd packages
+
+
+torch
+transformers
+numpy
+sklearn >= 1.3
+
+remove langchain - replace with strings lol
+pynvml - make optional
+move datasets to dev
+remove protobuf - did we add this to support sentence transformers
+remove beepy?

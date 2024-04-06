@@ -102,8 +102,8 @@ def infer_data(
         seed = generation_kwargs["generation_seed"]
         seed_everything(seed=seed)
 
-    for idx, batch in tqdm(enumerate
-        (batcher(iterable=model_inputs, batch_size=batch_size)),
+    for idx, batch in tqdm(
+        enumerate(batcher(iterable=model_inputs, batch_size=batch_size)),
         total=math.ceil(len(model_inputs) / batch_size),
     ):
         # print(f"Batch {idx+1}/{math.ceil(len(model_inputs) / batch_size)}")
@@ -112,7 +112,9 @@ def infer_data(
         encoded_input = tokenizer(
             text=batch, **tokenizer_encoding_kwargs, return_tensors="pt"
         )
-        decoded_input = tokenizer.batch_decode(encoded_input['input_ids'], spaces_between_special_tokens = False)
+        decoded_input = tokenizer.batch_decode(
+            encoded_input["input_ids"], spaces_between_special_tokens=False
+        )
 
         input_ids = encoded_input.input_ids.to(device)
         attention_mask = encoded_input.attention_mask.to(device)
@@ -130,7 +132,9 @@ def infer_data(
         # remove prompt
         if not is_encoder_decoder:
             decoded_output = decoder_parser(
-                outputs=decoded_output, formatted_prompts=decoded_input, prepoc=output_preproc
+                outputs=decoded_output,
+                formatted_prompts=decoded_input,
+                prepoc=output_preproc,
             )
         else:
             decoded_output = encoder_decoder_parser(

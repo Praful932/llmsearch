@@ -18,13 +18,9 @@ from transformers.generation.logits_process import (
 )
 
 from llmsearch.utils.logging_utils import get_logger
-
 from llmsearch.utils.model_utils import seed_everything
 
 logger = get_logger(__name__)
-
-
-from transformers import AutoTokenizer
 
 
 class TailFreeLogitsWarper(LogitsWarper):
@@ -400,10 +396,6 @@ def get_logits_processor_patch(self, **kwargs):
                     repetition_penalty, repetition_penalty_range
                 )
     return result
-
-
-from llmsearch.utils.common_utils import print_call_stack
-
 
 def generation_config_init_patch(self, **kwargs):
     self.__init___old(**kwargs)
