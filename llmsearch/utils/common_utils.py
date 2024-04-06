@@ -26,7 +26,7 @@ def clone_monkey_patch(
 ) -> BaseEstimator:
     """Deprecated Monkey Patch function to clone the Estimator while doing cross validation/hyperparameter search
 
-    Usable in <= 1.3 versions of scikit-learn versions
+    Usable in < 1.3 versions of scikit-learn versions
 
     - This functions returns the same estimator, as there are no parameters to specifically "fit"
     - This is done to avoid OOM errors for larger models, this does not affect the hyperparameter search in any way
