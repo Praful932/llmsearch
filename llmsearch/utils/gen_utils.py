@@ -113,7 +113,7 @@ gen_type_map = {
         "do_sample": {"equal": True},
     },
     "Top-A Sampling": {
-        "tfs": {"gte": 0, "lte": 1.0},
+        "top_a": {"gte": 0, "lte": 1.0},
         "do_sample": {"equal": True},
     },
 }
@@ -124,6 +124,9 @@ param_dependent_on_sampling = [
     "top_p",
     "typical_p",
     "eta_cutoff",
+    'mirostat_mode',
+    'tfs',
+    'top_a'
 ]
 
 

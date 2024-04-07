@@ -1,29 +1,15 @@
+"""Stopping criteria utilities for generation."""
+
 from typing import List
 
 import torch
 from transformers import StoppingCriteria, StoppingCriteriaList
 
-
-class SingleTokenStoppingCriteria(StoppingCriteria):
-    def __init__(self, token, num):
-        super().__init__()
-        self.token = token
-        self.num = num
-
-    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor):
-        res = []
-
-        # If input is a batch all items of the batch should satisfy the condition
-        for item in input_ids:
-            stop_count = (item == self.token).sum().item()
-            # decoded_text = tokenizer.decode(item, skip_special_tokens=True)
-            if stop_count >= self.num:
-                # print(decoded_text)
-                res.append(True)
-        return res
-
-class MultiTokenEOSCriteria(StoppingCriteria):
+class MultiTokenStoppingCriteria(StoppingCriteria):
     """Criteria to stop on the specified multi-token sequence.
+
+    A modified verion of Stopping Criteria implemented here - https://github.com/EleutherAI/lm-evaluation-harness/blob/27924d77953491f66a038a09892807065e469358/lm_eval/models/utils.py#L208
+    That maintains a state for each batch of inputs which helps in knowing where to look.
 
     This code is not thread safe. The same object cannot be used simultaneously in multiple threads.
     """
@@ -63,13 +49,10 @@ class MultiTokenEOSCriteria(StoppingCriteria):
         """
         This is called after a new token is generated
         """
-        # For efficiency, we compare the last n tokens where n is the number of tokens in the stop_sequence
-
         ret_val = False
 
         if not self.state_initialized:
             # Every batch should set this state
-            # print(f"Setting state, batch_size - {input_ids.shape[0]}, batch prompt length - {input_ids.shape[1] - 1}")
             self.set_state(input_ids.shape[0], input_ids.shape[1] - 1)
 
         # IDs of all the tokens except the prompt
@@ -77,20 +60,13 @@ class MultiTokenEOSCriteria(StoppingCriteria):
         # look back for 2 more tokens than it takes to encode our stop sequence
         lookback_ids_batch = lookback_ids_batch[:, -self.sequence_id_len :]
 
-        # print(f"Current input length - {input_ids.shape[1]}, completion length - {abs(self.prompt_length - input_ids.shape[1])}")
-        # print(f"Current input - {tokenizer.batch_decode(input_ids, **{'spaces_between_special_tokens' : False})}")
-
         # no elements yet to look back
         if lookback_ids_batch.nelement() == 0:
             return False
 
         for i, done in enumerate(self.done_tracker):
             if not done:
-                # look back only as far as the last token of the stop sequence
-                # print(len(self.done_tracker), lookback_ids_batch.shape, self.batch_size, self.prompt_length)
+                # look back as much as the length of the stop token sequence
                 self.done_tracker[i] = self.sequence_ids == lookback_ids_batch[i][-(self.sequence_ids.shape[0]):]
         ret_val = False not in self.done_tracker
-        if ret_val:
-            # ASSUMPTION: Relies on the assumption that generation will only stop when the stop token is generated
-            self.reset()
         return ret_val

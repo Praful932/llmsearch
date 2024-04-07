@@ -1,21 +1,3 @@
-"""
-export PATH="~/miniconda3/bin:${PATH}"
-export PATH="/root/.local/bin:${PATH}"
-conda init bash
-
-
-conda create --name llmsearch-env python=3.10
-conda activate llmsearch-env
-
-poetry install --extras "pynvml" --with dev --no-root
-pip install https://download.pytorch.org/whl/cu118/torch-2.1.0%2Bcu118-cp310-cp310-linux_x86_64.whl
-
-pip install autoawq@https://github.com/casper-hansen/AutoAWQ/releases/download/v0.2.0/autoawq-0.2.0+cu118-cp310-cp310-linux_x86_64.whl
-"""
-
-import sys
-sys.path.append('/workspace/llmsearch/')
-
 import re
 import textwrap
 from pathlib import Path
@@ -106,9 +88,6 @@ tokenizer = AutoTokenizer.from_pretrained(output_folder, local_files_only=True, 
 tokenizer.pad_token = tokenizer.unk_token
 tokenizer.padding_side = 'left'
 
-
-# process dataset
-
 pt = textwrap.dedent("""\
     Q: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?
     A: There are 15 trees originally. Then there were 21 trees after some more were planted. So there must have been 21 - 15 = 6. The answer is 6.
@@ -130,13 +109,12 @@ bm_samples = processed_dataset.shuffle(seed = seed).select(range(bm_sample_size)
 multi_token_stop_criteria_ob = MultiTokenEOSCriteria(sequence_ids = [32000])
 stopping_criteria = StoppingCriteriaList([multi_token_stop_criteria_ob])
 
-batch_size = 1
 tuner_ob = Tuner(
     model = model,
     tokenizer = tokenizer,
     dataset = bm_samples,
     device = 'cuda:0',
-    batch_size = batch_size,
+    batch_size = 1,
     tokenizer_encoding_kwargs={'padding': 'longest', 'add_special_tokens' : False},
     tokenizer_decoding_kwargs={'spaces_between_special_tokens' : False},
     scorer = get_score,
@@ -147,46 +125,26 @@ tuner_ob = Tuner(
     callbacks_after_inference = [multi_token_stop_criteria_ob.reset],
 )
 
-gen_params1 = {
+gen_params_tfs = {
     'max_new_tokens' : 500,
     # max_new_tokens take precendece over stopping criteria
     'stopping_criteria' : stopping_criteria,
     'generation_seed' : 42,
+
+    'tfs' : 0.99,
+    'do_sample' : True,
 }
 
-scores_before, outputs_before = tuner_ob.get_score(gen_params1)
+gen_params_top_a = {
+    'max_new_tokens' : 500,
+    # max_new_tokens take precendece over stopping criteria
+    'stopping_criteria' : stopping_criteria,
+    'generation_seed' : 42,
 
-print("Scores before tuning: ", scores_before)
-
-# ------------------- Grid Search -------------------
-
-hyp_space = {
-    'max_new_tokens' : [500],
-    'stopping_criteria' : [stopping_criteria],
-    'generation_seed' : [42],
-    'do_sample' : [True],
-
-    'top_k' : [10],
-    'top_p' : [0.8],
-
+    'top_a' : 0.1,
+    'do_sample' : True,
 }
 
-# TODO : To replace with tuner_ob.scorer
-scorer = make_scorer(score_func=get_score, greater_is_better=True)
+scores, outputs = tuner_ob.get_score(gen_params_tfs)
 
-clf = GridSearchCV(
-    estimator = tuner_ob.estimator,
-    param_grid=hyp_space,
-    scoring = scorer,
-    cv = 2,
-    n_jobs = None,
-    verbose=3,
-)
-
-clf.fit(X=tuner_ob.dataset["X"], y=tuner_ob.dataset['y'])
-
-scores_after, outputs_after = tuner_ob.get_score(clf.best_params_)
-
-print("Scores after tuning: ", scores_after)
-
-# temp_model_dir.unlink()
+scores, outputs = tuner_ob.get_score(gen_params_top_a)

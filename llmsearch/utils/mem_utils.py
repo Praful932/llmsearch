@@ -196,6 +196,8 @@ def batch_without_oom_error(func: callable):
                     )
                     batch_size //= 2
                     gc_cuda()
+                elif type(exception) == NotImplementedError:
+                    raise exception from exception
                 else:
                     raise Exception(  # pylint: disable=broad-exception-raised
                         "Unable to fit the lowest batch size of 1 for inference, try methods to reduce the gpu consumption"

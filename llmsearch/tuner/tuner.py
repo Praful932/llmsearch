@@ -28,16 +28,17 @@ class LLMEstimatorWrapper(BaseEstimator):
         self,
         model: nn.Module,
         tokenizer: AutoTokenizer,
-        is_encoder_decoder: bool,
-        device: str,
         scorer: Callable,
+        device: str,
+        tokenizer_encode_kwargs: Dict,
+        tokenizer_decode_kwargs: Dict,
         batch_size: int,
-        disable_batch_size_cache: bool,
-        tokenizer_encoding_kwargs: Dict,
-        tokenizer_decoding_kwargs: Dict = None,
-        disable_generation_param_checks: bool = False,
+        callbacks_after_inference: List[Callable] = None,
+        disable_batch_size_cache: bool = False,
         pred_function: Union[Callable, None] = None,
-        callbacks_after_inference=None,
+        is_encoder_decoder: bool = False,
+        disable_generation_param_checks: bool = False,
+        output_prepoc: Callable = lambda x: x.strip(),
         **kwargs,
     ):
         """Initializes the Estimator
@@ -45,40 +46,39 @@ class LLMEstimatorWrapper(BaseEstimator):
         Args:
             model (nn.Module): model that has a `.generate` method
             tokenizer (AutoTokenizer): tokenizer for the input
-            is_encoder_decoder (bool): whether the model is an encoder-decoder model, `False` if not
-            device (str): device to run inference on, eg - `cuda:0`
             scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in ground truth and predictions are returns a metric to optimize on
+            device (str): device to run inference on, eg - `cuda:0`
+            tokenizer_encode_kwargs (Dict): Encoding key value arguments for the `tokenizer`
+            tokenizer_decode_kwargs (Dict): Decoding key value arguments for the `tokenizer`
             batch_size (int): batch_size to run inference with, this gets dynamically halfed if the inference function encounters OOM errors
-            disable_batch_size_cache (bool): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised by the inference function
-            tokenizer_encoding_kwargs (Dict): Encoding arguments for the `tokenizer`
-            tokenizer_decoding_kwargs (Dict, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`
-            disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.
-            pred_function (Union[Callable, None], optional): Override Prediction Function `.predict` is called. The overriden function should have the signature - `(estimator : LLMEstimatorWrapper, model_inputs : List, generation_params : Dict) -> outputs : List` & should return a list of outputs which can be directly consumed by `scorer` as `y_pred`. Defaults to None.
-            callbacks_after_inference (Union[List[Callable], None], optional): Callbacks to run after each inference, by default None
+            callbacks_after_inference (List[Callable], optional): Callbacks to run after each inference. Useful for stopping criteria in generation. Defaults to None.
+            disable_batch_size_cache (bool): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised by the inference function, Defaults to False.
+            pred_function (Union[Callable, None], optional): Override inference function if present. Defaults to None.
+            is_encoder_decoder (bool, optional): whether the model is an encoder-decoder model, `False` if not. Defaults to False.
+            disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this does a sanity check of the parameters & produces warnings before doing generation. Defaults to False.
 
-        - All `kwargs` are assumed to be generation params and used when doing Hyperparameter search
+        - All other kwargs are assumed to be generation parameters and used when doing hyperparam search
         """
         self.model = model
         self.tokenizer = tokenizer
-        self.is_encoder_decoder = is_encoder_decoder
-        self.device = device
         self.scorer = scorer
+        self.device = device
+        self.tokenizer_encode_kwargs = tokenizer_encode_kwargs
+        self.tokenizer_decode_kwargs = tokenizer_decode_kwargs
         self.batch_size = batch_size
         # stores the optimal batch size for a particular configuration if disable_batch_size_cache is `False`
         self._optimal_batch_size = batch_size
+        self.callbacks_after_inference = [] if callbacks_after_inference is None else callbacks_after_inference
         self.disable_batch_size_cache = disable_batch_size_cache
-        self.tokenizer_encoding_kwargs = tokenizer_encoding_kwargs
-        self.tokenizer_decoding_kwargs = (
-            tokenizer_decoding_kwargs
-            if tokenizer_decoding_kwargs
-            else {"skip_special_tokens": True}
-        )
         self.pred_function = pred_function
-        self.callbacks_after_inference = callbacks_after_inference
+        self.is_encoder_decoder = is_encoder_decoder
         self.disable_generation_param_checks = disable_generation_param_checks
+        self.output_prepoc = output_prepoc
+
         # Set generation params, All kwargs are assumed to be generation params
         for k, v in kwargs.items():
             self.__setattr__(k, v)
+
         # Stores the names of the keys passed in
         self._model_generation_param_keys = list(kwargs.keys())
         logger.debug(
@@ -135,6 +135,7 @@ class LLMEstimatorWrapper(BaseEstimator):
             tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
             return_optimal_batch_size=True,
             callbacks=self.callbacks_after_inference,
+            output_preproc=self.output_prepoc,
         )
         return output
 
@@ -213,49 +214,54 @@ class Tuner:
 
     def __init__(
         self,
-        model: Union[AutoModelForCausalLM, AutoModelForSeq2SeqLM],
+        model: nn.Module,
         tokenizer: AutoTokenizer,
-        # To Remove
+        dataset: Dataset,
+        column_mapping: Dict[str, list],
         prompt_template: str,
-        dataset: Union[Dataset, Dict],
-        column_mapping: Dict,
-        device: str,
-        is_encoder_decoder: bool,
         scorer: Callable,
+        device: str,
+        tokenizer_encode_args: Dict = None,
+        tokenizer_decode_kwargs: Dict = None,
+        batch_size: int = 16,
+        output_preproc: Callable = lambda x: x.strip(),
+        callbacks_after_inference: List[Callable] = None,
+        is_encoder_decoder: bool = False,
         greater_is_better: bool = True,
         seed: int = 42,
-        tokenizer_encoding_kwargs: Dict = None,
-        tokenizer_decoding_kwargs: Dict = None,
-        batch_size: int = 32,
         disable_batch_size_cache: bool = False,
         disable_generation_param_checks: bool = False,
         sample_ratio: float = 0.3,
         tokenizer_max_length_quantile: float = 0.9,
-        output_preproc: Callable = lambda x: x.strip(),
-        callbacks_after_inference: Union[List[Callable], None] = None,
+        custom_pred_function = None,
     ):
         """Tuner Class
 
         Args:
-            model (Union[AutoModelForCausalLM,AutoModelForSeq2SeqLM]): model that has `.generate` method
+            model (nn.Module): model that has a `.generate` method
             tokenizer (AutoTokenizer): tokenizer for the input
-            prompt_template (string: prompt template that will apply to the input(`X`) of the model
-            dataset (Union[Dataset, Dict]): The dataset, The processed version(after applying the prompt template) of the input and output are stored with key `X` & `y` in `dataset` of the object
-            column_mapping (Dict): A mapping from the column names in the `dataset` to the column names expected by the model. The expected format is a dictionary with the following format: {"text_column_name": "X", "label_column_name": "y"}.
+            dataset (Dataset): dataset to perform search on
+            column_mapping (Dict[str, list]): should contain `input_cols` & `eval_cols` keys, `input_cols` should contain the columns to be used in the `prompt_template` & `eval_cols` should contain the columns to be used in the `scorer`,
+                all eval_columns will be passed in as a dict as the second argument to the `scorer` function, eg - `{'input_cols' : ["question"], 'eval_cols' : ['answer']}`
+            prompt_template (str): template for the prompt, should contain the keys from `input_cols` in the `column_mapping` eg prompt template - `"Question : How many days are there in a year?\nAnswer : 365\n\nQuestion : {question}\nAnswer : "`
+            scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in ground truth and predictions are returns a metric to optimize on, `eval_cols` in `column_mapping` are passed in as the second argument as a List[Dict]
             device (str): device to run inference on, eg - `cuda:0`
-            is_encoder_decoder (bool): whether the model is an encoder-decoder model, `False` if not
-            scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in ground truth and predictions are returns a metric to optimize on
-            greater_is_better (bool, optional): scorer is a scoring(greater is better) or a loss function(lower is better) . Defaults to True.
-            seed (int, optional): seed for reproducibility, Only used for computing tokenizer arguments in `self.get_default_input_tokenizer_kwargs`.  Defaults to 42.
-            tokenizer_encoding_kwargs (Dict, optional): Encoding arguments for the `tokenizer`. If `None` it's initialized using the `get_default_input_tokenizer_kwargs` method. Defaults to None.
-            tokenizer_decoding_kwargs (Dict, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
-            batch_size (int, optional): batch_size to run inference with, this gets dynamically halfed if the inference function encounters OOM errors. Defaults to 32.
+            tokenizer_encode_args (Dict, optional): Encoding key value arguments for the `tokenizer`. If `None` it's initialized using the `get_default_input_tokenizer_kwargs` method. Defaults to None.
+            tokenizer_decode_kwargs (Dict, optional): Decoding key value arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
+            batch_size (int, optional): batch_size to run inference with, this gets dynamically halfed if the inference function encounters OOM errors. Defaults to 16.
+            output_preproc (Callable, optional): Post processing function for the output, by default it strips the output. Defaults to `lambda x : x.strip()`.
+            callbacks_after_inference (List[Callable], optional): Callbacks to run after each inference. Useful for stopping criteria in generation. Defaults to None.
+            is_encoder_decoder (bool, optional): whether the model is an encoder-decoder model, `False` if not. Defaults to False.
+            greater_is_better (bool, optional): whether the metric to optimize on is greater the better. Defaults to True.
+            seed (int, optional): seed for reproducibility. Defaults to 42.
             disable_batch_size_cache (bool, optional): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised by the inference function. Defaults to False.
-            disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this check does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.  Defaults to False.
-            sample_ratio (float, optional): Sampling Ratio of `dataset` to find the ideal values for padding and truncation to batch inputs to the model. Argument is invalid if `tokenizer_encoding_kwargs` is not `None`. Defaults to 0.3.
-            tokenizer_max_length_quantile (float, optional): quantile at which the value for `max_length` will be computed using the initialized dataset. Defaults to 0.9.
-            output_preproc (Callabale, optional): preprocessing applied to the decoded output(only the completion). Defaults to stripping the ouptut in `infer_data` function.
-            callbacks_after_inference (Union[List[Callable], None], optional): Callback to run after each inference, by default None
+            disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this does a sanity check of the parameters & produces warnings before doing generation. Defaults to False.
+            custom_pred_function (Union[Callable, None], optional): Override inference function if present. Defaults to None. Should take in two parameters - model inputs (List[str]) and model generation parameters (Dict) and return a List[str] of outputs
+                overrides model_utils.infer_data
+
+            # TODO : To check
+            sample_ratio (float, optional): Sampling Ratio of `dataset` to find the ideal values for padding and truncation. Argument is invalid if `tokenizer_encoding_kwargs` is not `None`. Defaults to 0.3.
+            tokenizer_max_length_quantile (float, optional): percentile to find a value for `max_length` based on the dataset. Defaults to 0.9.
         """
         self.tokenizer = tokenizer
         self.prompt_template = prompt_template
@@ -263,14 +269,12 @@ class Tuner:
         self.input_cols = column_mapping["input_cols"]
         self.eval_cols = column_mapping["eval_cols"]
 
-        # Map prompt template to dataset
-        # TODO : Why is apply_chat_template not used here? Where is the system prompt?
         self.dataset = dataset.map(
             lambda sample: {
-                "X": self.prompt_template.format(
+                "_X": self.prompt_template.format(
                     **{input_col: sample[input_col] for input_col in self.input_cols}
                 ),
-                "y": {eval_col: sample[eval_col] for eval_col in self.eval_cols},
+                "_y": {eval_col: sample[eval_col] for eval_col in self.eval_cols},
             }
         )
         self.device = device
@@ -285,12 +289,12 @@ class Tuner:
         self.sample_ratio = sample_ratio
         self.tokenizer_max_length_quantile = tokenizer_max_length_quantile
         # Get encoding arguments for the `tokenizer` if not passed in
-        self.tokenizer_encoding_kwargs = self.get_default_input_tokenizer_kwargs(
+        self.tokenizer_encode_kwargs = self.get_default_input_tokenizer_kwargs(
             sample_ratio=sample_ratio,
-            tokenizer_kwargs=tokenizer_encoding_kwargs,
+            tokenizer_kwargs=tokenizer_encode_kwargs,
         )
-        self.tokenizer_decoding_kwargs = (
-            tokenizer_decoding_kwargs
+        self.tokenizer_decode_kwargs = (
+            tokenizer_decode_kwargs
             if tokenizer_decoding_kwargs
             else {"skip_special_tokens": True}
         )
@@ -298,17 +302,18 @@ class Tuner:
         self.estimator = LLMEstimatorWrapper(
             model=model,
             tokenizer=self.tokenizer,
-            is_encoder_decoder=is_encoder_decoder,
-            device=self.device,
             scorer=self.scorer,
+            device=self.device,
+            tokenizer_encode_kwargs=self.tokenizer_encode_kwargs,
+            tokenizer_decode_kwargs=self.tokenizer_decode_kwargs,
             batch_size=batch_size,
-            disable_batch_size_cache=disable_batch_size_cache,
-            tokenizer_encoding_kwargs=self.tokenizer_encoding_kwargs,
-            tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
             callbacks_after_inference=callbacks_after_inference,
+            disable_batch_size_cache=disable_batch_size_cache,
+            pred_function=custom_pred_function,
+            is_encoder_decoder=is_encoder_decoder,
+            disable_generation_param_checks=disable_generation_param_checks,
+            output_prepoc=output_preproc,
         )
-        self.output_preproc = output_preproc
-
         # reset cache on every init
         cache.empty_cache()
 
@@ -324,23 +329,25 @@ class Tuner:
             tokenizer_length_percentile (float): percentile to find a value for `max_length` based on the dataset
             tokenizer_kwargs (Union[Dict, None]): Encoding key value arguments for the `tokenizer`. Returns the same value if this is not `None`. Defaults to None.
         """
+        # TODO - Check functionality of this method
         _quantiles_to_calc = [0.80, 0.85, 0.90, 0.92, 0.94, 0.95, 0.97, 0.99]
 
         if tokenizer_kwargs:
             return tokenizer_kwargs
 
         tokenizer_encoding_kwargs = {
-            "padding": True,
+            "padding": 'longest',
             "truncation": True,
+            'add_special_tokens' : False,
         }
         logger.info(
             "Computing tokenizer encoding arguments using a sample of the dataset..."
         )
-        sample_size = int(len(self.dataset["X"]) * sample_ratio)
+        sample_size = int(len(self.dataset["_X"]) * sample_ratio)
         random.seed(self.seed)
-        sample_indexes = random.sample(range(0, len(self.dataset["X"])), sample_size)
+        sample_indexes = random.sample(range(0, len(self.dataset["_X"])), sample_size)
         get_items = itemgetter(*sample_indexes)
-        X = get_items(self.dataset["X"])
+        X = get_items(self.dataset["_X"])
         # Calculate max_length
         max_length_at_quantile = self.get_value_at_quantile(
             input_list=X, quantile=self.tokenizer_max_length_quantile
@@ -378,7 +385,7 @@ class Tuner:
             is_encoder_decoder=self.estimator.is_encoder_decoder,
             batch_size=self.estimator.optimal_batch_size,
             device=self.device,
-            model_inputs=dataset_to_evaluate["X"],
+            model_inputs=dataset_to_evaluate["_X"],
             tokenizer_encoding_kwargs=self.tokenizer_encoding_kwargs,
             tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
             generation_kwargs=generation_kwargs,
@@ -387,7 +394,7 @@ class Tuner:
             output_preproc=self.output_preproc,
             callbacks=self.estimator.callbacks_after_inference,
         )
-        score = self.score_func(y_true=self.dataset["y"], y_pred=y_pred)
+        score = self.score_func(y_true=self.dataset["_y"], y_pred=y_pred)
         return score, y_pred
 
     def get_value_at_quantile(self, input_list: List, quantile: float) -> int:

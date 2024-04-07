@@ -1,12 +1,14 @@
 # pylint: skip-file
 """
-Monkey Patch to add in generation params that are currently not supported by `transformers` library
-Script Copied from - https://github.com/oobabooga/text-generation-webui/blob/main/modules/transformers_monkey_patch.py
+Monkey Patch transformers to add in generation techniques that are currently not supported by the transformers library
+
+TailFreeLogitsWarper, TopALogitsWarper implementation copied from https://github.com/oobabooga/text-generation-webui/blob/main/modules/sampler_hijack.py
 """
 import math
 from typing import Union
 
 import torch
+import warnings
 import numpy as np
 import transformers
 from transformers import LogitsWarper
@@ -17,13 +19,10 @@ from transformers.generation.logits_process import (
     TemperatureLogitsWarper,
 )
 
-from llmsearch.utils.logging_utils import get_logger
 from llmsearch.utils.model_utils import seed_everything
 
-logger = get_logger(__name__)
-
-
 class TailFreeLogitsWarper(LogitsWarper):
+    """TFS - https://www.trentonbricken.com/Tail-Free-Sampling/"""
     def __init__(
         self,
         tfs: float,
@@ -74,6 +73,7 @@ class TailFreeLogitsWarper(LogitsWarper):
 
 
 class TopALogitsWarper(LogitsWarper):
+    """Top-A sampling - https://github.com/BlinkDL/RWKV-LM/tree/4cb363e5aa31978d801a47bc89d28e927ab6912e#the-top-a-sampling-method."""
     def __init__(
         self,
         top_a: float,
@@ -109,6 +109,9 @@ class TopALogitsWarper(LogitsWarper):
 
 
 class MirostatLogitsWarper(LogitsWarper):
+    """Mirostat sampling - https://arxiv.org/pdf/2007.14966.pdf
+    Currently not fully supported, needs work to work with a batch of sequences
+    """
     def __init__(
         self,
         mirostat_mode: int,
@@ -118,7 +121,7 @@ class MirostatLogitsWarper(LogitsWarper):
         min_tokens_to_keep: int = 1,
         generation_seed: Union[int, None] = None,
     ):
-        print(f"here - {mirostat_mode}")
+        raise NotImplementedError("Found `mirostat_mode` - `mirostat_mode` in generation parameters, mirostat is not fully implemented yet, Try a different generation method")
         if mirostat_mode not in [2]:
             raise ValueError(
                 f"`mirostat` has to be a an integer 2, but is {mirostat_mode}"
@@ -255,15 +258,14 @@ class MirostatLogitsWarper(LogitsWarper):
         """Non-batch mode"""
         # This happens step by step, each token is passed in, then logit is calculated
         # seems the first sample in the batch is getting decoded
-        print(f"Iteration - {input_ids.shape[1]}")
+        # print(f"Iteration - {input_ids.shape[1]}")
         logits = scores[0]
         sorted_logits, sorted_indices = torch.sort(logits, descending=True, dim=-1)
         # print(f"sorted logits tensor sum - {torch.sum(sorted_logits)}")
-        print(f"sorted logits 1st example - {sorted_logits[:4]}")
-        print(f"sorted indices - {sorted_indices.tolist()[:5]}")
+        # print(f"sorted logits 1st example - {sorted_logits[:4]}")
+        # print(f"sorted indices - {sorted_indices.tolist()[:5]}")
         prob_original = torch.softmax(sorted_logits, dim=-1)  # candidates
-        print(f"Probability 1st example - {prob_original[:4]}")
-        print(prob_original[0])
+        # print(f"Probability 1st example - {prob_original[:4]}")
 
         # Truncate the words with surprise values greater than mu
         # as you go below, surprise/cross entropy value increases
@@ -274,22 +276,22 @@ class MirostatLogitsWarper(LogitsWarper):
                 else:
                     sorted_logits = sorted_logits[:i]
                 break
-        print(f"Row logit tensor sum - {torch.sum(sorted_logits)}")
+        # print(f"Row logit tensor sum - {torch.sum(sorted_logits)}")
 
         # Normalize the probabilities of the remaining words
-        print(f"Row sum - {torch.sum(sorted_logits)}")
+        # print(f"Row sum - {torch.sum(sorted_logits)}")
         prob_topk = torch.softmax(sorted_logits, dim=0)
-        print(f"softmaxed vals - {prob_topk[:4]}")
+        # print(f"softmaxed vals - {prob_topk[:4]}")
 
         if self.generation_seed:
-            print(f"Seeding with {self.generation_seed}")
+            # print(f"Seeding with {self.generation_seed}")
             seed_everything(seed=self.generation_seed)
         prev_i = torch.multinomial(prob_topk, num_samples=1, replacement=True)
-        print(f"previous index - {prev_i}")
+        # print(f"previous index - {prev_i}")
 
-        print(f"logit val - {prob_topk[prev_i]}")
+        # print(f"logit val - {prob_topk[prev_i]}")
         observed_surprise = -math.log2(prob_topk[prev_i])
-        print(f"obs surprise value - {observed_surprise}")
+        # print(f"obs surprise value - {observed_surprise}")
         self.e = observed_surprise - self.mirostat_tau
 
         # Update mu using the learning rate and error
@@ -306,35 +308,6 @@ class MirostatLogitsWarper(LogitsWarper):
         scores = scores.masked_fill(indices_to_remove, self.filter_value)
         print(f"sum value - {torch.sum(scores[0][scores[0] >= 0])}\n\n")
         return scores
-
-
-class RepetitionPenaltyLogitsProcessorWithRange(LogitsProcessor):
-    """
-    Copied from the transformers library
-    """
-
-    def __init__(self, penalty: float, _range: int):
-        if not isinstance(penalty, float) or not (penalty > 0):
-            raise ValueError(
-                f"`penalty` has to be a strictly positive float, but is {penalty}"
-            )
-
-        self.penalty = penalty
-        self._range = _range
-
-    def __call__(
-        self, input_ids: torch.LongTensor, scores: torch.FloatTensor
-    ) -> torch.FloatTensor:
-        # Check for rep penalty from the last `self.range` tokens
-        input_ids = input_ids[:, -self._range :]
-        score = torch.gather(scores, 1, input_ids)
-
-        # if score < 0 then repetition penalty has to be multiplied to reduce the previous token probability
-        score = torch.where(score < 0, score * self.penalty, score / self.penalty)
-
-        scores.scatter_(1, input_ids, score)
-        return scores
-
 
 def get_logits_warper_patch(self, generation_config):
     warpers = self._get_logits_warper_old(generation_config)
@@ -382,43 +355,23 @@ def get_logits_warper_patch(self, generation_config):
 
     return warpers
 
-
-def get_logits_processor_patch(self, **kwargs):
-    result = self._get_logits_processor_old(**kwargs)
-    repetition_penalty_range = kwargs["generation_config"].repetition_penalty_range
-    repetition_penalty = kwargs["generation_config"].repetition_penalty
-
-    # override `RepetitionPenaltyLogitsProcessor` with range version
-    if repetition_penalty_range > 0:
-        for i in range(len(result)):
-            if result[i].__class__.__name__ == "RepetitionPenaltyLogitsProcessor":
-                result[i] = RepetitionPenaltyLogitsProcessorWithRange(
-                    repetition_penalty, repetition_penalty_range
-                )
-    return result
-
 def generation_config_init_patch(self, **kwargs):
     self.__init___old(**kwargs)
-    # Add in extra generation params
     self.tfs = kwargs.pop("tfs", None)
     self.top_a = kwargs.pop("top_a", None)
+    self.generation_seed = kwargs.pop("generation_seed", None)
+
+    # Not in use currently
     self.mirostat_mode = kwargs.pop("mirostat_mode", 0)
     self.mirostat_eta = kwargs.pop("mirostat_eta", 0.1)
     self.mirostat_tau = kwargs.pop("mirostat_tau", 5)
-    self.repetition_penalty_range = kwargs.pop("repetition_penalty_range", 0)
-    self.generation_seed = kwargs.pop("generation_seed", None)
-
 
 def hijack_samplers():
+    """Patches generation methods to add in new generation techniques"""
     transformers.GenerationMixin._get_logits_warper_old = (
         transformers.GenerationMixin._get_logits_warper
     )
     transformers.GenerationMixin._get_logits_warper = get_logits_warper_patch
-
-    transformers.GenerationMixin._get_logits_processor_old = (
-        transformers.GenerationMixin._get_logits_processor
-    )
-    transformers.GenerationMixin._get_logits_processor = get_logits_processor_patch
 
     transformers.GenerationConfig.__init___old = transformers.GenerationConfig.__init__
     transformers.GenerationConfig.__init__ = generation_config_init_patch
