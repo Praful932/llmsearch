@@ -6,7 +6,6 @@ import random
 from operator import itemgetter
 from typing import List, Union, Tuple, Dict, Callable
 
-import langchain
 import numpy as np
 from torch import nn
 from datasets import Dataset
@@ -217,7 +216,7 @@ class Tuner:
         model: Union[AutoModelForCausalLM, AutoModelForSeq2SeqLM],
         tokenizer: AutoTokenizer,
         # To Remove
-        prompt_template: langchain.BasePromptTemplate,
+        prompt_template: str,
         dataset: Union[Dataset, Dict],
         column_mapping: Dict,
         device: str,
@@ -240,7 +239,7 @@ class Tuner:
         Args:
             model (Union[AutoModelForCausalLM,AutoModelForSeq2SeqLM]): model that has `.generate` method
             tokenizer (AutoTokenizer): tokenizer for the input
-            prompt_template (langchain.BasePromptTemplate): prompt template that will apply to the input(`X`) of the model
+            prompt_template (string: prompt template that will apply to the input(`X`) of the model
             dataset (Union[Dataset, Dict]): The dataset, The processed version(after applying the prompt template) of the input and output are stored with key `X` & `y` in `dataset` of the object
             column_mapping (Dict): A mapping from the column names in the `dataset` to the column names expected by the model. The expected format is a dictionary with the following format: {"text_column_name": "X", "label_column_name": "y"}.
             device (str): device to run inference on, eg - `cuda:0`

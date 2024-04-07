@@ -6,6 +6,7 @@ Memory related utils to do friendly inference :)
 import gc
 import math
 import time
+import ctypes
 import inspect
 import traceback
 
@@ -207,6 +208,7 @@ def gc_cuda():
     """Gargage collect Torch (CUDA) memory."""
     gc.collect()
     if torch.cuda.is_available():
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
         torch.cuda.empty_cache()
 
 
