@@ -45,7 +45,7 @@ def seed_everything(seed: int):
 
 
 @batch_without_oom_error
-def infer_data(
+def run_inference(
     model: AutoModelForSeq2SeqLM,
     tokenizer: AutoTokenizer,
     is_encoder_decoder: bool,
@@ -53,10 +53,10 @@ def infer_data(
     disable_batch_size_cache: bool,  # pylint: disable=unused-argument
     device: str,
     model_inputs: List,
-    tokenizer_encoding_kwargs: Dict,
-    generation_kwargs: Dict = None,
+    tokenizer_encode_args: Dict,
+    tokenizer_decode_args : Dict,
+    generation_args: Dict = None,
     disable_generation_param_checks: bool = False,
-    tokenizer_decoding_kwargs: Dict = None,
     return_optimal_batch_size: bool = False,
     output_preproc: callable = lambda x: x.strip(),
     callbacks: List = None,
@@ -69,11 +69,12 @@ def infer_data(
         is_encoder_decoder (bool): whether the model is an encoder-decoder model, `False` if not
         batch_size (int): batch_size to run inference with, this gets dynamically reduced if the inference function encounters OOM errors
         disable_batch_size_cache (bool): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised
+        device (str): device to run the inference on
         model_inputs (List): model inputs to do inference on
-        tokenizer_encoding_kwargs (Dict): Encoding arguments for the `tokenizer`
-        generation_kwargs (Dict, optional): generation kwargs to use while generating the output. Defaults to None.
+        tokenizer_encode_args (Dict): Encoding arguments for the `tokenizer`
+        tokenizer_decode_args (Dict, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
+        generation_args (Dict, optional): generation kwargs to use while generating the output. Defaults to None.
         disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this check does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.
-        tokenizer_decoding_kwargs (_type_, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
         return_optimal_batch_size (bool, optional): if the function should return the optimal batch size found, useful for caching when performing cross validation. Defaults to False.
         output_preproc (Callable, optional): Prepoc to run on the completion, by default strips the output. Note that this is applied on the completion. Defaults to False.
         callbacks (List, optional): List of callbacks to run after each generation, by default None
@@ -82,53 +83,53 @@ def infer_data(
         Union[Tuple[List, int], List]: outputs and or best batch size
     """
     seed = None
-    assert isinstance(
-        tokenizer_encoding_kwargs, Dict
-    ), f"Incorrect tokenizer kwargs input, expected Dict - {tokenizer_encoding_kwargs}"
 
-    tokenizer_decoding_kwargs = (
-        tokenizer_decoding_kwargs
-        if tokenizer_decoding_kwargs
+    tokenizer_decode_args = (
+        tokenizer_decode_args
+        if tokenizer_decode_args
         else {"skip_special_tokens": True}
     )
 
     outputs = []
 
     if not disable_generation_param_checks:
-        generation_type = identify_and_validate_gen_params(gen_params=generation_kwargs)
+        generation_type = identify_and_validate_gen_params(gen_params=generation_args)
         logger.info("Detected generation type - %s", generation_type)
 
-    if "generation_seed" in generation_kwargs:
-        seed = generation_kwargs["generation_seed"]
+    if "generation_seed" in generation_args:
+        seed = generation_args["generation_seed"]
         seed_everything(seed=seed)
 
-    for idx, batch in tqdm(
+    for _, batch in tqdm(
         enumerate(batcher(iterable=model_inputs, batch_size=batch_size)),
         total=math.ceil(len(model_inputs) / batch_size),
     ):
-        # print(f"Batch {idx+1}/{math.ceil(len(model_inputs) / batch_size)}")
         gc.collect()
         gc_cuda()
         encoded_input = tokenizer(
-            text=batch, **tokenizer_encoding_kwargs, return_tensors="pt"
+            text=batch, **tokenizer_encode_args, return_tensors="pt"
         )
+        # TODO : check this behaviour and set default if reqd
         decoded_input = tokenizer.batch_decode(
             encoded_input["input_ids"], spaces_between_special_tokens=False
         )
 
         input_ids = encoded_input.input_ids.to(device)
         attention_mask = encoded_input.attention_mask.to(device)
+
         output_ids = model.generate(
-            inputs=input_ids, attention_mask=attention_mask, **generation_kwargs
+            inputs=input_ids, attention_mask=attention_mask, **generation_args
         )
+
         if callbacks:
             for callback in callbacks:
                 callback()
 
         decoded_output = tokenizer.batch_decode(
             sequences=output_ids,
-            **tokenizer_decoding_kwargs,
+            **tokenizer_decode_args,
         )
+
         # remove prompt
         if not is_encoder_decoder:
             decoded_output = decoder_parser(
@@ -141,11 +142,14 @@ def infer_data(
                 outputs=decoded_output, prepoc=output_preproc
             )
         outputs.extend(decoded_output)
+
     for x, y_pred in zip(model_inputs, outputs):
         logger.debug("Input - %s", repr(x))
         logger.debug("Model Output - %s", repr(y_pred))
+
     if return_optimal_batch_size:
         return outputs, batch_size
+
     return outputs
 
 

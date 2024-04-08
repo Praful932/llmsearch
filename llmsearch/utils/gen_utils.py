@@ -11,33 +11,7 @@ logger = get_logger(__name__)
 
 ops = ["equal", "lt", "gt", "ne"]
 
-logits_process_params = [
-    "temperature",
-    "top_k",
-    "top_p",
-    "typical_p",
-    "epsilon_cutoff",
-    "eta_cutoff",
-    "diversity_penalty",
-    "repetition_penalty",
-    "encoder_repetition_penalty",
-    "length_penalty",
-    "no_repeat_ngram_size",
-    "bad_words_ids",
-    "force_words_ids",
-    "renormalize_logits",
-    "constraints",
-    "forced_bos_token_id",
-    "forced_eos_token_id",
-    "remove_invalid_values",
-    "exponential_decay_length_penalty",
-    "suppress_tokens",
-    "begin_suppress_tokens",
-    "forced_decoder_ids",
-    "sequence_bias",
-    "guidance_scale",
-]
-
+# Default generation parameters
 gen_param_defaults = {
     "do_sample": False,
     "num_beams": 1,
@@ -71,6 +45,7 @@ gen_param_defaults = {
 }
 
 
+# Generation type mapping
 gen_type_map = {
     "Contrastive Search Decoding": {
         "num_beams": {"equal": 1},
@@ -118,6 +93,7 @@ gen_type_map = {
     },
 }
 
+# Generation parameters dependent on 'do_sample` Parameter
 param_dependent_on_sampling = [
     "temperature",
     "top_k",
@@ -230,15 +206,14 @@ def check_if_param_req_satisfy(gen_params: Dict, param: str, param_req: Dict):
 
 
 def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
-    """Get sample hyp spave
+    """Get sample hyp space
 
     Args:
         seed (int): seed
 
     Returns:
-        Tuple[List, List]: First Item is a larger hyp space which searches for individual generationt types
-        Second Item of the Tuple are the top generation params as evaluated by oobabooga using Vicuna-13B with instruct prompts
-        Ref - https://www.reddit.com/r/LocalLLaMA/comments/14adfw2/preset_arena_17205_comparisons_between_241/
+        Tuple[List, List]: First Item is a larger hyp space which searches for individual generation types
+        Second Item of the Tuple are the top generation params as evaluated by oobabooga using Vicuna-13B with instruct prompts - https://www.reddit.com/r/LocalLLaMA/comments/14adfw2/preset_arena_17205_comparisons_between_241/
     """
     param_grid1 = [
         {
@@ -269,7 +244,7 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "max_new_tokens": [max_new_tokens],
             "no_repeat_ngram_size": [0, 3, 4, 5],
         },
-        # disabling as currently quite slow
+        # disabling as currently not supported
         # {
         #     "mirostat_mode": [2],
         #     "mirostat_eta": [0.1, 0.2, 0.3, 0.4, 0.5],
@@ -398,7 +373,7 @@ def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
             "generation_seed": [seed],
             "max_new_tokens": [max_new_tokens],
         },
-        # disabling as currently quite slow
+        # disabling as currently not supported
         # {
         #     # mirostat
         #     "mirostat_mode": [2],

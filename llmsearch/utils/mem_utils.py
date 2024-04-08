@@ -1,6 +1,6 @@
 """
 Inspired from toma - https://github.com/BlackHC/
-Memory related utils to do friendly inference :)
+Memory related utils to do friendly inference
 """
 
 import gc
@@ -26,7 +26,7 @@ try:
 except ImportError:
     if torch.cuda.is_available():
         logger.warning(
-            "pynvml package not found in a CUDA environment, Install it by running - `pip install nvidia-ml-py3` for betting caching of batch size while running search"
+            "pynvml package not found in a CUDA environment, Install it by running - `pip install nvidia-ml-py3` for betting caching of batch size while running hyp param search"
         )
 
 
@@ -153,7 +153,7 @@ def batch_without_oom_error(func: callable):
                 )
         logger.info(
             "Starting inference with generation parameters - %s",
-            kwargs.get("generation_kwargs", {}),
+            kwargs.get("generation_args", {}),
         )
         logger.info("Performing inference with batch_size - %s", batch_size)
         start_time = time.time()
@@ -196,8 +196,8 @@ def batch_without_oom_error(func: callable):
                     )
                     batch_size //= 2
                     gc_cuda()
-                elif type(exception) == NotImplementedError:
-                    raise exception from exception
+                elif isinstance(exception, NotImplementedError):
+                    raise exception
                 else:
                     raise Exception(  # pylint: disable=broad-exception-raised
                         "Unable to fit the lowest batch size of 1 for inference, try methods to reduce the gpu consumption"

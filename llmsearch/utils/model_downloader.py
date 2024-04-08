@@ -1,3 +1,4 @@
+# https://github.com/oobabooga/text-generation-webui/blob/main/download-model.py
 import argparse
 import base64
 import datetime

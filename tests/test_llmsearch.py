@@ -11,6 +11,7 @@ poetry install --extras "pynvml" --with dev --no-root
 pip install https://download.pytorch.org/whl/cu118/torch-2.1.0%2Bcu118-cp310-cp310-linux_x86_64.whl
 
 pip install autoawq@https://github.com/casper-hansen/AutoAWQ/releases/download/v0.2.0/autoawq-0.2.0+cu118-cp310-cp310-linux_x86_64.whl
+
 """
 
 import sys
@@ -137,8 +138,8 @@ tuner_ob = Tuner(
     dataset = bm_samples,
     device = 'cuda:0',
     batch_size = batch_size,
-    tokenizer_encoding_kwargs={'padding': 'longest', 'add_special_tokens' : False},
-    tokenizer_decoding_kwargs={'spaces_between_special_tokens' : False},
+    tokenizer_encode_args={'padding': 'longest', 'add_special_tokens' : False},
+    tokenizer_decode_args={'spaces_between_special_tokens' : False},
     scorer = get_score,
     prompt_template = "{X}",
     is_encoder_decoder = False,

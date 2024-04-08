@@ -1,5 +1,5 @@
 """
-Common utils
+Common utilties
 """
 
 import inspect
@@ -30,8 +30,6 @@ def clone_monkey_patch(
 
     - This functions returns the same estimator, as there are no parameters to specifically "fit"
     - This is done to avoid OOM errors for larger models, this does not affect the hyperparameter search in any way
-    - The monkey patch will be deprecated when this package supports scikit-learn - >= 1.3.0 (atm not released)
-        - https://scikit-learn.org/dev/whats_new/v1.3.html#changelog:~:text=A%20__sklearn_clone__%20protocol%20is%20now%20available%20to%20override%20the%20default%20behavior%20of%20base.clone.
 
     Args:
         estimator (BaseEstimator): estimator to clone

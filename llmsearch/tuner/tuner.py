@@ -11,9 +11,9 @@ from torch import nn
 from datasets import Dataset
 from sklearn.base import BaseEstimator
 from sklearn.metrics import make_scorer
-from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import AutoTokenizer
 
-from llmsearch.utils.model_utils import infer_data
+from llmsearch.utils.model_utils import run_inference
 from llmsearch.utils.mem_utils import cache
 
 from llmsearch.utils.logging_utils import get_logger
@@ -30,15 +30,15 @@ class LLMEstimatorWrapper(BaseEstimator):
         tokenizer: AutoTokenizer,
         scorer: Callable,
         device: str,
-        tokenizer_encode_kwargs: Dict,
-        tokenizer_decode_kwargs: Dict,
+        tokenizer_encode_args: Dict,
+        tokenizer_decode_args: Dict,
         batch_size: int,
         callbacks_after_inference: List[Callable] = None,
         disable_batch_size_cache: bool = False,
         pred_function: Union[Callable, None] = None,
         is_encoder_decoder: bool = False,
         disable_generation_param_checks: bool = False,
-        output_prepoc: Callable = lambda x: x.strip(),
+        output_preproc: Callable = lambda x: x.strip(),
         **kwargs,
     ):
         """Initializes the Estimator
@@ -48,14 +48,15 @@ class LLMEstimatorWrapper(BaseEstimator):
             tokenizer (AutoTokenizer): tokenizer for the input
             scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in ground truth and predictions are returns a metric to optimize on
             device (str): device to run inference on, eg - `cuda:0`
-            tokenizer_encode_kwargs (Dict): Encoding key value arguments for the `tokenizer`
-            tokenizer_decode_kwargs (Dict): Decoding key value arguments for the `tokenizer`
+            tokenizer_encode_args (Dict): Encoding key value arguments for the `tokenizer`
+            tokenizer_decode_args (Dict): Decoding key value arguments for the `tokenizer`
             batch_size (int): batch_size to run inference with, this gets dynamically halfed if the inference function encounters OOM errors
             callbacks_after_inference (List[Callable], optional): Callbacks to run after each inference. Useful for stopping criteria in generation. Defaults to None.
             disable_batch_size_cache (bool): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised by the inference function, Defaults to False.
             pred_function (Union[Callable, None], optional): Override inference function if present. Defaults to None.
             is_encoder_decoder (bool, optional): whether the model is an encoder-decoder model, `False` if not. Defaults to False.
             disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this does a sanity check of the parameters & produces warnings before doing generation. Defaults to False.
+            output_preproc (Callable, optional): Post processing function for the output, by default it strips the output. Defaults to `lambda x : x.strip()`.
 
         - All other kwargs are assumed to be generation parameters and used when doing hyperparam search
         """
@@ -63,8 +64,8 @@ class LLMEstimatorWrapper(BaseEstimator):
         self.tokenizer = tokenizer
         self.scorer = scorer
         self.device = device
-        self.tokenizer_encode_kwargs = tokenizer_encode_kwargs
-        self.tokenizer_decode_kwargs = tokenizer_decode_kwargs
+        self.tokenizer_encode_args = tokenizer_encode_args
+        self.tokenizer_decode_args = tokenizer_decode_args
         self.batch_size = batch_size
         # stores the optimal batch size for a particular configuration if disable_batch_size_cache is `False`
         self._optimal_batch_size = batch_size
@@ -73,7 +74,7 @@ class LLMEstimatorWrapper(BaseEstimator):
         self.pred_function = pred_function
         self.is_encoder_decoder = is_encoder_decoder
         self.disable_generation_param_checks = disable_generation_param_checks
-        self.output_prepoc = output_prepoc
+        self.output_preproc = output_preproc
 
         # Set generation params, All kwargs are assumed to be generation params
         for k, v in kwargs.items():
@@ -121,7 +122,7 @@ class LLMEstimatorWrapper(BaseEstimator):
         if self.pred_function:
             return self.pred_function(self, X, model_generation_params)
         # Perform inference on input data
-        output, self._optimal_batch_size = infer_data(
+        output, self._optimal_batch_size = run_inference(
             model=self.model,
             tokenizer=self.tokenizer,
             is_encoder_decoder=self.is_encoder_decoder,
@@ -129,13 +130,13 @@ class LLMEstimatorWrapper(BaseEstimator):
             disable_batch_size_cache=self.disable_batch_size_cache,
             device=self.device,
             model_inputs=X,
-            tokenizer_encoding_kwargs=self.tokenizer_encoding_kwargs,
-            generation_kwargs=model_generation_params,
+            tokenizer_encode_args=self.tokenizer_encode_args,
+            generation_args=model_generation_params,
             disable_generation_param_checks=self.disable_generation_param_checks,
-            tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
+            tokenizer_decode_args=self.tokenizer_decode_args,
             return_optimal_batch_size=True,
             callbacks=self.callbacks_after_inference,
-            output_preproc=self.output_prepoc,
+            output_preproc=self.output_preproc,
         )
         return output
 
@@ -222,7 +223,7 @@ class Tuner:
         scorer: Callable,
         device: str,
         tokenizer_encode_args: Dict = None,
-        tokenizer_decode_kwargs: Dict = None,
+        tokenizer_decode_args: Dict = None,
         batch_size: int = 16,
         output_preproc: Callable = lambda x: x.strip(),
         callbacks_after_inference: List[Callable] = None,
@@ -247,7 +248,7 @@ class Tuner:
             scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in ground truth and predictions are returns a metric to optimize on, `eval_cols` in `column_mapping` are passed in as the second argument as a List[Dict]
             device (str): device to run inference on, eg - `cuda:0`
             tokenizer_encode_args (Dict, optional): Encoding key value arguments for the `tokenizer`. If `None` it's initialized using the `get_default_input_tokenizer_kwargs` method. Defaults to None.
-            tokenizer_decode_kwargs (Dict, optional): Decoding key value arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
+            tokenizer_decode_args (Dict, optional): Decoding key value arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
             batch_size (int, optional): batch_size to run inference with, this gets dynamically halfed if the inference function encounters OOM errors. Defaults to 16.
             output_preproc (Callable, optional): Post processing function for the output, by default it strips the output. Defaults to `lambda x : x.strip()`.
             callbacks_after_inference (List[Callable], optional): Callbacks to run after each inference. Useful for stopping criteria in generation. Defaults to None.
@@ -257,10 +258,10 @@ class Tuner:
             disable_batch_size_cache (bool, optional): If `True` for each cross validation run, the pre-defined `batch_size` is used, this could lead to wasted computation time if OOM is raised by the inference function. Defaults to False.
             disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this does a sanity check of the parameters & produces warnings before doing generation. Defaults to False.
             custom_pred_function (Union[Callable, None], optional): Override inference function if present. Defaults to None. Should take in two parameters - model inputs (List[str]) and model generation parameters (Dict) and return a List[str] of outputs
-                overrides model_utils.infer_data
+                overrides model_utils.run_inference
 
             # TODO : To check
-            sample_ratio (float, optional): Sampling Ratio of `dataset` to find the ideal values for padding and truncation. Argument is invalid if `tokenizer_encoding_kwargs` is not `None`. Defaults to 0.3.
+            sample_ratio (float, optional): Sampling Ratio of `dataset` to find the ideal values for padding and truncation. Argument is invalid if `tokenizer_encode_args` is not `None`. Defaults to 0.3.
             tokenizer_max_length_quantile (float, optional): percentile to find a value for `max_length` based on the dataset. Defaults to 0.9.
         """
         self.tokenizer = tokenizer
@@ -286,16 +287,19 @@ class Tuner:
         self.seed = seed
         self.disable_batch_size_cache = disable_batch_size_cache
         self.disable_generation_param_checks = disable_generation_param_checks
+
+        # TODO - to check
         self.sample_ratio = sample_ratio
         self.tokenizer_max_length_quantile = tokenizer_max_length_quantile
+
         # Get encoding arguments for the `tokenizer` if not passed in
-        self.tokenizer_encode_kwargs = self.get_default_input_tokenizer_kwargs(
+        self.tokenizer_encode_args = self.get_default_tokenizer_encode_args(
             sample_ratio=sample_ratio,
-            tokenizer_kwargs=tokenizer_encode_kwargs,
+            tokenizer_encode_args=tokenizer_encode_args,
         )
-        self.tokenizer_decode_kwargs = (
-            tokenizer_decode_kwargs
-            if tokenizer_decoding_kwargs
+        self.tokenizer_decode_args = (
+            tokenizer_decode_args
+            if tokenizer_decode_args
             else {"skip_special_tokens": True}
         )
         # Initialize the model estimator
@@ -304,38 +308,38 @@ class Tuner:
             tokenizer=self.tokenizer,
             scorer=self.scorer,
             device=self.device,
-            tokenizer_encode_kwargs=self.tokenizer_encode_kwargs,
-            tokenizer_decode_kwargs=self.tokenizer_decode_kwargs,
+            tokenizer_encode_args=self.tokenizer_encode_args,
+            tokenizer_decode_args=self.tokenizer_decode_args,
             batch_size=batch_size,
             callbacks_after_inference=callbacks_after_inference,
             disable_batch_size_cache=disable_batch_size_cache,
             pred_function=custom_pred_function,
             is_encoder_decoder=is_encoder_decoder,
             disable_generation_param_checks=disable_generation_param_checks,
-            output_prepoc=output_preproc,
+            output_preproc=output_preproc,
         )
         # reset cache on every init
         cache.empty_cache()
 
-    def get_default_input_tokenizer_kwargs(
+    def get_default_tokenizer_encode_args(
         self,
         sample_ratio: float,
-        tokenizer_kwargs: Union[Dict, None],
+        tokenizer_encode_args: Union[Dict, None],
     ):
         """Get default input tokenizer arguments using the dataset, Sets `padding` & `truncation` to True and calculate `max_length` as tokenizer arguments
 
         Args:
-            sample_ratio (float): Sampling Ratio of `dataset` to find the ideal values for padding and truncation. Argument is invalid if `tokenizer_encoding_kwargs` is not `None`.
+            sample_ratio (float): Sampling Ratio of `dataset` to find the ideal values for padding and truncation. Argument is invalid if `tokenizer_encode_args` is not `None`.
             tokenizer_length_percentile (float): percentile to find a value for `max_length` based on the dataset
             tokenizer_kwargs (Union[Dict, None]): Encoding key value arguments for the `tokenizer`. Returns the same value if this is not `None`. Defaults to None.
         """
         # TODO - Check functionality of this method
         _quantiles_to_calc = [0.80, 0.85, 0.90, 0.92, 0.94, 0.95, 0.97, 0.99]
 
-        if tokenizer_kwargs:
-            return tokenizer_kwargs
+        if tokenizer_encode_args:
+            return tokenizer_encode_args
 
-        tokenizer_encoding_kwargs = {
+        tokenizer_encode_args = {
             "padding": 'longest',
             "truncation": True,
             'add_special_tokens' : False,
@@ -350,48 +354,62 @@ class Tuner:
         X = get_items(self.dataset["_X"])
         # Calculate max_length
         max_length_at_quantile = self.get_value_at_quantile(
-            input_list=X, quantile=self.tokenizer_max_length_quantile
+            input_list=X, quantile=
+            self.tokenizer_max_length_quantile
         )
-        tokenizer_encoding_kwargs["max_length"] = min(
+
+        # TODO : will max length and above config work?
+        tokenizer_encode_args["max_length"] = min(
             max_length_at_quantile, self.tokenizer.model_max_length
         )
         logger.debug(
             "Computed max length at quantile - %d, tokenizer model max length - %d",
             max_length_at_quantile,
-            tokenizer_encoding_kwargs["max_length"],
+            tokenizer_encode_args["max_length"],
         )
 
         logger.info(
-            "Setting tokenizer encoding arguments to - %s", tokenizer_encoding_kwargs
+            "Setting tokenizer encoding arguments to - %s", tokenizer_encode_args
         )
-        return tokenizer_encoding_kwargs
+        return tokenizer_encode_args
 
     def get_score(
-        self, generation_kwargs: Dict, dataset: Union[Dataset, Dict] = None
+        self, generation_args: Dict, dataset: Union[Dataset, Dict] = None
     ) -> Tuple[float, List]:
         """Evaluate the score function on a dataset or the initialized dataset using some generation arguments for the model
 
         Args:
-            generation_kwargs (Dict): generation kwargs to perform inference
+            generation_args (Dict): generation kwargs to perform inference
             dataset (Union[Dataset, Dict], optional): dataset to perform inference on. Defaults to None.
 
         Returns:
             Tuple[float, List]: score, predictions
         """
         dataset_to_evaluate = dataset if dataset else self.dataset
-        y_pred = infer_data(
+        if not dataset:
+            dataset_to_evaluate = self.dataset
+        else:
+            dataset_to_evaluate = dataset.map(
+                lambda sample: {
+                    "_X": self.prompt_template.format(
+                        **{input_col: sample[input_col] for input_col in self.input_cols}
+                    ),
+                    "_y": {eval_col: sample[eval_col] for eval_col in self.eval_cols},
+                }
+            )
+        y_pred = run_inference(
             model=self.estimator.model,
-            tokenizer=self.tokenizer,
+            tokenizer=self.estimator.tokenizer,
             is_encoder_decoder=self.estimator.is_encoder_decoder,
             batch_size=self.estimator.optimal_batch_size,
             device=self.device,
             model_inputs=dataset_to_evaluate["_X"],
-            tokenizer_encoding_kwargs=self.tokenizer_encoding_kwargs,
-            tokenizer_decoding_kwargs=self.tokenizer_decoding_kwargs,
-            generation_kwargs=generation_kwargs,
+            tokenizer_encode_args=self.tokenizer_encode_args,
+            tokenizer_decode_args=self.tokenizer_decode_args,
+            generation_args=generation_args,
             disable_batch_size_cache=self.disable_batch_size_cache,
             disable_generation_param_checks=self.disable_generation_param_checks,
-            output_preproc=self.output_preproc,
+            output_preproc=self.estimator.output_preproc,
             callbacks=self.estimator.callbacks_after_inference,
         )
         score = self.score_func(y_true=self.dataset["_y"], y_pred=y_pred)
@@ -407,7 +425,6 @@ class Tuner:
         Returns:
             int: rounded value at quantile
         """
-        # we don't consider `self.tokenizer.model_max_length` as the objective is to get a sense of the input
         input_ids = self.tokenizer(
             input_list, max_length=None, truncation=False, padding=False
         )["input_ids"]
