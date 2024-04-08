@@ -100,9 +100,9 @@ param_dependent_on_sampling = [
     "top_p",
     "typical_p",
     "eta_cutoff",
-    'mirostat_mode',
-    'tfs',
-    'top_a'
+    "mirostat_mode",
+    "tfs",
+    "top_a",
 ]
 
 

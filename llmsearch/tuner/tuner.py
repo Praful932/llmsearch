@@ -69,7 +69,9 @@ class LLMEstimatorWrapper(BaseEstimator):
         self.batch_size = batch_size
         # stores the optimal batch size for a particular configuration if disable_batch_size_cache is `False`
         self._optimal_batch_size = batch_size
-        self.callbacks_after_inference = [] if callbacks_after_inference is None else callbacks_after_inference
+        self.callbacks_after_inference = (
+            [] if callbacks_after_inference is None else callbacks_after_inference
+        )
         self.disable_batch_size_cache = disable_batch_size_cache
         self.pred_function = pred_function
         self.is_encoder_decoder = is_encoder_decoder
@@ -234,7 +236,7 @@ class Tuner:
         disable_generation_param_checks: bool = False,
         sample_ratio: float = 0.3,
         tokenizer_max_length_quantile: float = 0.9,
-        custom_pred_function = None,
+        custom_pred_function=None,
     ):
         """Tuner Class
 
@@ -340,9 +342,9 @@ class Tuner:
             return tokenizer_encode_args
 
         tokenizer_encode_args = {
-            "padding": 'longest',
+            "padding": "longest",
             "truncation": True,
-            'add_special_tokens' : False,
+            "add_special_tokens": False,
         }
         logger.info(
             "Computing tokenizer encoding arguments using a sample of the dataset..."
@@ -354,8 +356,7 @@ class Tuner:
         X = get_items(self.dataset["_X"])
         # Calculate max_length
         max_length_at_quantile = self.get_value_at_quantile(
-            input_list=X, quantile=
-            self.tokenizer_max_length_quantile
+            input_list=X, quantile=self.tokenizer_max_length_quantile
         )
 
         # TODO : will max length and above config work?
@@ -392,7 +393,10 @@ class Tuner:
             dataset_to_evaluate = dataset.map(
                 lambda sample: {
                     "_X": self.prompt_template.format(
-                        **{input_col: sample[input_col] for input_col in self.input_cols}
+                        **{
+                            input_col: sample[input_col]
+                            for input_col in self.input_cols
+                        }
                     ),
                     "_y": {eval_col: sample[eval_col] for eval_col in self.eval_cols},
                 }

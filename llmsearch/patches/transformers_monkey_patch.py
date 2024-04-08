@@ -21,8 +21,10 @@ from transformers.generation.logits_process import (
 
 from llmsearch.utils.model_utils import seed_everything
 
+
 class TailFreeLogitsWarper(LogitsWarper):
     """TFS - https://www.trentonbricken.com/Tail-Free-Sampling/"""
+
     def __init__(
         self,
         tfs: float,
@@ -74,6 +76,7 @@ class TailFreeLogitsWarper(LogitsWarper):
 
 class TopALogitsWarper(LogitsWarper):
     """Top-A sampling - https://github.com/BlinkDL/RWKV-LM/tree/4cb363e5aa31978d801a47bc89d28e927ab6912e#the-top-a-sampling-method."""
+
     def __init__(
         self,
         top_a: float,
@@ -112,6 +115,7 @@ class MirostatLogitsWarper(LogitsWarper):
     """Mirostat sampling - https://arxiv.org/pdf/2007.14966.pdf
     Currently not fully supported, needs work to work with a batch of sequences
     """
+
     def __init__(
         self,
         mirostat_mode: int,
@@ -121,7 +125,9 @@ class MirostatLogitsWarper(LogitsWarper):
         min_tokens_to_keep: int = 1,
         generation_seed: Union[int, None] = None,
     ):
-        raise NotImplementedError("Found `mirostat_mode` - `mirostat_mode` in generation parameters, mirostat is not fully implemented yet, Try a different generation method")
+        raise NotImplementedError(
+            "Found `mirostat_mode` - `mirostat_mode` in generation parameters, mirostat is not fully implemented yet, Try a different generation method"
+        )
         if mirostat_mode not in [2]:
             raise ValueError(
                 f"`mirostat` has to be a an integer 2, but is {mirostat_mode}"
@@ -309,6 +315,7 @@ class MirostatLogitsWarper(LogitsWarper):
         print(f"sum value - {torch.sum(scores[0][scores[0] >= 0])}\n\n")
         return scores
 
+
 def get_logits_warper_patch(self, generation_config):
     warpers = self._get_logits_warper_old(generation_config)
     warpers_to_add = LogitsProcessorList()
@@ -355,6 +362,7 @@ def get_logits_warper_patch(self, generation_config):
 
     return warpers
 
+
 def generation_config_init_patch(self, **kwargs):
     self.__init___old(**kwargs)
     self.tfs = kwargs.pop("tfs", None)
@@ -365,6 +373,7 @@ def generation_config_init_patch(self, **kwargs):
     self.mirostat_mode = kwargs.pop("mirostat_mode", 0)
     self.mirostat_eta = kwargs.pop("mirostat_eta", 0.1)
     self.mirostat_tau = kwargs.pop("mirostat_tau", 5)
+
 
 def hijack_samplers():
     """Patches generation methods to add in new generation techniques"""

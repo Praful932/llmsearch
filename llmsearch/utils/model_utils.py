@@ -54,7 +54,7 @@ def run_inference(
     device: str,
     model_inputs: List,
     tokenizer_encode_args: Dict,
-    tokenizer_decode_args : Dict,
+    tokenizer_decode_args: Dict,
     generation_args: Dict = None,
     disable_generation_param_checks: bool = False,
     return_optimal_batch_size: bool = False,

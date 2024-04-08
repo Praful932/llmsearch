@@ -5,6 +5,7 @@ from typing import List
 import torch
 from transformers import StoppingCriteria, StoppingCriteriaList
 
+
 class MultiTokenStoppingCriteria(StoppingCriteria):
     """Criteria to stop on the specified multi-token sequence.
 
@@ -16,9 +17,11 @@ class MultiTokenStoppingCriteria(StoppingCriteria):
 
     def __init__(
         self,
-        sequence_ids : List[int],
+        sequence_ids: List[int],
     ) -> None:
-        self.sequence_ids = torch.tensor(sequence_ids, dtype = torch.int32, device = "cuda:0")
+        self.sequence_ids = torch.tensor(
+            sequence_ids, dtype=torch.int32, device="cuda:0"
+        )
         # we look back for 2 more tokens than it takes to encode our stop sequence
         # because tokenizers suck, and a model might generate `['\n', '\n']` but our `sequence` is `['\n\n']`
         # and we don't want to mistakenly not stop a generation because our
@@ -44,7 +47,6 @@ class MultiTokenStoppingCriteria(StoppingCriteria):
         self.prompt_length = None
         self.state_initialized = False
 
-
     def __call__(self, input_ids, scores, **kwargs) -> bool:
         """
         This is called after a new token is generated
@@ -67,6 +69,9 @@ class MultiTokenStoppingCriteria(StoppingCriteria):
         for i, done in enumerate(self.done_tracker):
             if not done:
                 # look back as much as the length of the stop token sequence
-                self.done_tracker[i] = self.sequence_ids == lookback_ids_batch[i][-(self.sequence_ids.shape[0]):]
+                self.done_tracker[i] = (
+                    self.sequence_ids
+                    == lookback_ids_batch[i][-(self.sequence_ids.shape[0]) :]
+                )
         ret_val = False not in self.done_tracker
         return ret_val
