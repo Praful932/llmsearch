@@ -1,3 +1,4 @@
+# pylint: skip-file
 """
 Common Utilties for Models
 """
@@ -109,9 +110,9 @@ def run_inference(
         encoded_input = tokenizer(
             text=batch, **tokenizer_encode_args, return_tensors="pt"
         )
-        # TODO : check this behaviour and set default if reqd
+        # Useful to find completion
         decoded_input = tokenizer.batch_decode(
-            encoded_input["input_ids"], spaces_between_special_tokens=False
+            encoded_input["input_ids"], **tokenizer_decode_args,
         )
 
         input_ids = encoded_input.input_ids.to(device)

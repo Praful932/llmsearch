@@ -15,27 +15,49 @@ from llmsearch.utils.mem_utils import gc_cuda
 from llmsearch.model_downloader import download_model_from_hf
 from llmsearch.scripts.stopping_criteria import MultiTokenEOSCriteria
 
+def load_model_and_tokenizer(model_id, temp_model_dir):
+    model_id = "TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ"
 
-def preprocess_dataset(
-    dataset, tokenizer, pt, pt_cols, system_prompt, add_generation_prompt=True
-):
-    def wrapper(sample):
-        """Takes in a sample, formats it using prompt template, applies chat template and returns the formatted string"""
-        messages = (
-            []
-            if system_prompt is None
-            else [{"role": "system", "content": system_prompt}]
-        )
-        formatted_pt = pt.format(**{pt_col: sample[pt_col] for pt_col in pt_cols})
-        messages.append(
-            {
-                "role": "user",
-                "content": formatted_pt,
-            }
-        )
-        formatted_pt_with_ct = tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=add_generation_prompt
-        )
+    temp_model_dir = Path(f"./temp_dir/")
+    temp_model_dir.mkdir(exist_ok=True, parents=True)
+    output_folder = download_model_from_hf(model_id, save_dir=temp_model_dir, branch="main")
+
+    gc_cuda()
+
+    model = AutoAWQForCausalLM.from_quantized(
+        quant_path=output_folder, fuse_layers=True, device_map={"": 0}
+    )
+    tokenizer = AutoTokenizer.from_pretrained(
+        output_folder, local_files_only=True, legacy=False, use_fast=False
+    )
+    tokenizer.pad_token = tokenizer.unk_token
+    tokenizer.padding_side = "left"
+
+    return model, tokenizer
+
+def load_dataset():
+
+    def preprocess_dataset(
+        dataset, tokenizer, pt, pt_cols, system_prompt, add_generation_prompt=True
+    ):
+
+        def wrapper(sample):
+            """Takes in a sample, formats it using prompt template, applies chat template and returns the formatted string"""
+            messages = (
+                []
+                if system_prompt is None
+                else [{"role": "system", "content": system_prompt}]
+            )
+            formatted_pt = pt.format(**{pt_col: sample[pt_col] for pt_col in pt_cols})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": formatted_pt,
+                }
+            )
+            formatted_pt_with_ct = tokenizer.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=add_generation_prompt
+            )
         return formatted_pt_with_ct
 
     def actual_input(sample):
@@ -51,6 +73,32 @@ def preprocess_dataset(
 
     return pt_dataset
 
+
+    pt = textwrap.dedent(
+    """\
+    Q: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?
+    A: There are 15 trees originally. Then there were 21 trees after some more were planted. So there must have been 21 - 15 = 6. The answer is 6.
+
+    Q: If there are 3 cars in the parking lot and 2 more cars arrive, how many cars are in the parking lot?
+    A: There are originally 3 cars. 2 more cars arrive. 3 + 2 = 5. The answer is 5.
+
+    Q: {question}"""
+    )
+    pt_cols = ["question"]
+    system_prompt = "Solve the following math problems, end with The answer is"
+
+    # Add prompt template
+    processed_dataset = preprocess_dataset(
+        gsm8k_dataset["train"],
+        tokenizer,
+        pt=pt,
+        pt_cols=pt_cols,
+        system_prompt=system_prompt,
+        add_generation_prompt=True,
+    )
+
+    bm_sample_size = 10
+    bm_samples = processed_dataset.shuffle(seed=seed).select(range(bm_sample_size))
 
 def get_score(y_true, y_pred):
     def extract_answer_from_out(s):
@@ -73,53 +121,12 @@ def get_score(y_true, y_pred):
             scores.append(0)
     return sum(scores) / len(scores)
 
+model, tokenizer = load_model_and_tokenizer(model_id, temp_model_dir)
+bm_samples = load_dataset()
 
 # load dataset, model, tokenizer
 seed = 42
 gsm8k_dataset = datasets.load_dataset("gsm8k", "main")
-model_id = "TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ"
-
-temp_model_dir = Path(f"./temp_dir/")
-temp_model_dir.mkdir(exist_ok=True, parents=True)
-output_folder = download_model_from_hf(model_id, save_dir=temp_model_dir, branch="main")
-
-gc_cuda()
-
-model = AutoAWQForCausalLM.from_quantized(
-    quant_path=output_folder, fuse_layers=True, device_map={"": 0}
-)
-tokenizer = AutoTokenizer.from_pretrained(
-    output_folder, local_files_only=True, legacy=False, use_fast=False
-)
-tokenizer.pad_token = tokenizer.unk_token
-tokenizer.padding_side = "left"
-
-pt = textwrap.dedent(
-    """\
-    Q: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?
-    A: There are 15 trees originally. Then there were 21 trees after some more were planted. So there must have been 21 - 15 = 6. The answer is 6.
-
-    Q: If there are 3 cars in the parking lot and 2 more cars arrive, how many cars are in the parking lot?
-    A: There are originally 3 cars. 2 more cars arrive. 3 + 2 = 5. The answer is 5.
-
-    Q: {question}"""
-)
-pt_cols = ["question"]
-system_prompt = "Solve the following math problems, end with The answer is"
-
-# Add prompt template
-processed_dataset = preprocess_dataset(
-    gsm8k_dataset["train"],
-    tokenizer,
-    pt=pt,
-    pt_cols=pt_cols,
-    system_prompt=system_prompt,
-    add_generation_prompt=True,
-)
-
-bm_sample_size = 10
-bm_samples = processed_dataset.shuffle(seed=seed).select(range(bm_sample_size))
-
 # setup
 multi_token_stop_criteria_ob = MultiTokenEOSCriteria(sequence_ids=[32000])
 stopping_criteria = StoppingCriteriaList([multi_token_stop_criteria_ob])

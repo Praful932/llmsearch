@@ -32,8 +32,8 @@ from transformers import StoppingCriteriaList, AutoTokenizer
 
 from llmsearch.tuner import Tuner
 from llmsearch.utils.mem_utils import gc_cuda
-from llmsearch.model_downloader import download_model_from_hf
-from llmsearch.scripts.stopping_criteria import MultiTokenEOSCriteria
+from llmsearch.utils.model_downloader import download_model_from_hf
+from llmsearch.scripts.stopping_criteria import MultiTokenStoppingCriteria
 
 
 def preprocess_dataset(
@@ -144,7 +144,7 @@ bm_sample_size = 10
 bm_samples = processed_dataset.shuffle(seed=seed).select(range(bm_sample_size))
 
 # setup
-multi_token_stop_criteria_ob = MultiTokenEOSCriteria(sequence_ids=[32000])
+multi_token_stop_criteria_ob = MultiTokenStoppingCriteria(sequence_ids=[32000])
 stopping_criteria = StoppingCriteriaList([multi_token_stop_criteria_ob])
 
 batch_size = 1
@@ -198,7 +198,7 @@ clf = GridSearchCV(
     verbose=3,
 )
 
-clf.fit(X=tuner_ob.dataset["X"], y=tuner_ob.dataset["y"])
+clf.fit(X=tuner_ob.dataset["_X"], y=tuner_ob.dataset["_y"])
 
 scores_after, outputs_after = tuner_ob.get_score(clf.best_params_)
 

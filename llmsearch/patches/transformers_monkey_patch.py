@@ -126,7 +126,7 @@ class MirostatLogitsWarper(LogitsWarper):
         generation_seed: Union[int, None] = None,
     ):
         raise NotImplementedError(
-            "Found `mirostat_mode` - `mirostat_mode` in generation parameters, mirostat is not fully implemented yet, Try a different generation method"
+            f"Found `mirostat_mode` - `{mirostat_mode}` in generation parameters, mirostat is not fully implemented yet, Try a different generation method"
         )
         if mirostat_mode not in [2]:
             raise ValueError(
