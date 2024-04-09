@@ -2,8 +2,21 @@
 Common utilties
 """
 
+import yaml
 import inspect
 from sklearn.base import BaseEstimator
+
+def yaml_load(file_path):
+    """Load yaml file from file path
+
+    Args:
+        file_path (str): path to yaml file
+
+    Returns:
+        dict: loaded yaml file
+    """
+    with open(file_path, "r") as file:
+        return yaml.load(file, Loader=yaml.FullLoader)
 
 
 def print_call_stack(n: int):

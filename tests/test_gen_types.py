@@ -2,8 +2,13 @@ import re
 import textwrap
 from pathlib import Path
 
+import sys
+sys.path.append("/workspace/llmsearch")
+
+import torch
 import datasets
 
+from tqdm.auto import tqdm
 from sklearn.metrics import make_scorer
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 
@@ -12,21 +17,24 @@ from transformers import StoppingCriteriaList, AutoTokenizer
 
 from llmsearch.tuner import Tuner
 from llmsearch.utils.mem_utils import gc_cuda
-from llmsearch.model_downloader import download_model_from_hf
-from llmsearch.scripts.stopping_criteria import MultiTokenEOSCriteria
+from llmsearch.utils.common_utils import yaml_load
+from llmsearch.utils.model_downloader import download_model_from_hf
+from llmsearch.scripts.stopping_criteria import MultiTokenStoppingCriteria
+
+seed = 42
+bm_sample_size = 2
+model_id = "TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ"
+device = "cuda:0"
 
 def load_model_and_tokenizer(model_id, temp_model_dir):
-    model_id = "TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ"
-
-    temp_model_dir = Path(f"./temp_dir/")
     temp_model_dir.mkdir(exist_ok=True, parents=True)
     output_folder = download_model_from_hf(model_id, save_dir=temp_model_dir, branch="main")
 
     gc_cuda()
 
     model = AutoAWQForCausalLM.from_quantized(
-        quant_path=output_folder, fuse_layers=True, device_map={"": 0}
-    )
+        quant_path=output_folder, fuse_layers=True, device_map={"": device}
+    ).to(device)
     tokenizer = AutoTokenizer.from_pretrained(
         output_folder, local_files_only=True, legacy=False, use_fast=False
     )
@@ -58,20 +66,20 @@ def load_dataset():
             formatted_pt_with_ct = tokenizer.apply_chat_template(
                 messages, tokenize=False, add_generation_prompt=add_generation_prompt
             )
-        return formatted_pt_with_ct
+            return formatted_pt_with_ct
 
-    def actual_input(sample):
-        """Takes in a sample, formats it using prompt template, applies chat template and returns the formatted string"""
-        return sample[pt_cols[0]]
+        def actual_input(sample):
+            """Takes in a sample, formats it using prompt template, applies chat template and returns the formatted string"""
+            return sample[pt_cols[0]]
 
-    pt_dataset = dataset.map(
-        lambda sample: {
-            "X": wrapper(sample),
-            "actual input": actual_input(sample),
-        }
-    )
+        pt_dataset = dataset.map(
+            lambda sample: {
+                "X": wrapper(sample),
+                "actual input": actual_input(sample),
+            }
+        )
 
-    return pt_dataset
+        return pt_dataset
 
 
     pt = textwrap.dedent(
@@ -86,6 +94,8 @@ def load_dataset():
     )
     pt_cols = ["question"]
     system_prompt = "Solve the following math problems, end with The answer is"
+    gsm8k_dataset = datasets.load_dataset("gsm8k", "main")
+
 
     # Add prompt template
     processed_dataset = preprocess_dataset(
@@ -96,9 +106,8 @@ def load_dataset():
         system_prompt=system_prompt,
         add_generation_prompt=True,
     )
-
-    bm_sample_size = 10
     bm_samples = processed_dataset.shuffle(seed=seed).select(range(bm_sample_size))
+    return bm_samples
 
 def get_score(y_true, y_pred):
     def extract_answer_from_out(s):
@@ -121,21 +130,25 @@ def get_score(y_true, y_pred):
             scores.append(0)
     return sum(scores) / len(scores)
 
+
+
+temp_model_dir = Path(f"./temp_dir/")
+temp_model_dir.mkdir(exist_ok=True, parents=True)
 model, tokenizer = load_model_and_tokenizer(model_id, temp_model_dir)
 bm_samples = load_dataset()
 
 # load dataset, model, tokenizer
-seed = 42
+
 gsm8k_dataset = datasets.load_dataset("gsm8k", "main")
 # setup
-multi_token_stop_criteria_ob = MultiTokenEOSCriteria(sequence_ids=[32000])
+multi_token_stop_criteria_ob = MultiTokenStoppingCriteria(sequence_ids=[32000])
 stopping_criteria = StoppingCriteriaList([multi_token_stop_criteria_ob])
 
 tuner_ob = Tuner(
     model=model,
     tokenizer=tokenizer,
     dataset=bm_samples,
-    device="cuda:0",
+    device=device,
     batch_size=1,
     tokenizer_encode_args={"padding": "longest", "add_special_tokens": False},
     tokenizer_decode_args={"spaces_between_special_tokens": False},
@@ -147,24 +160,19 @@ tuner_ob = Tuner(
     callbacks_after_inference=[multi_token_stop_criteria_ob.reset],
 )
 
-gen_params_tfs = {
-    "max_new_tokens": 500,
-    # max_new_tokens take precendece over stopping criteria
-    "stopping_criteria": stopping_criteria,
-    "generation_seed": 42,
-    "tfs": 0.99,
-    "do_sample": True,
-}
 
-gen_params_top_a = {
-    "max_new_tokens": 500,
-    # max_new_tokens take precendece over stopping criteria
-    "stopping_criteria": stopping_criteria,
-    "generation_seed": 42,
-    "top_a": 0.1,
-    "do_sample": True,
-}
+gen_param_list =  yaml_load(Path(__file__).parent / 'test_gen_params.yaml')
 
-scores, outputs = tuner_ob.get_score(gen_params_tfs)
+for idx, gen_params in tqdm(enumerate(gen_param_list)):
+    print(f"Gen Params: {gen_params}")
+    if 'stopping_criteria' in gen_params:
+        gen_params['stopping_criteria'] = stopping_criteria
+    score, outputs = tuner_ob.get_score(gen_params)
 
-scores, outputs = tuner_ob.get_score(gen_params_top_a)
+
+    print(f"Score: {score}")
+    print(f"Outputs: {outputs}")
+
+    print("\n\n")
+    print("---" * 15)
+    print('\n\n')
