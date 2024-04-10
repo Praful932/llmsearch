@@ -17,19 +17,27 @@
   max_new_tokens: 20
 - max_new_tokens : 20
   tfs : 0.9
-- tfs : 0.2
+- max_new_tokens : 20
+  tfs : 0.2
+  do_sample : True
 - max_new_tokens : 20
   top_a : 0.1
+  do_sample : True
 - top_a : 0.9
+  max_new_tokens : 20
+  do_sample : True
 - top_k : 5
   do_sample : True
+  max_new_tokens : 20
 - top_p : 0.7
   temperature : 0.8
   no_repeat_ngram_size : 4
   do_sample : True
   generation_seed : 42
+  max_new_tokens : 20
 - repetition_penalty : 0.9
   temperature : 1.31
   top_k : 72
   top_p : 0.29
   do_sample : True
+  max_new_tokens : 20
