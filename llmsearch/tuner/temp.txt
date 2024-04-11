@@ -1,0 +1,18 @@
+During init - 0x7fba401f3460
+During estimator init - 0x7fba401f3460
+
+set new params - 0x7fba4025c760
+
+inference start - 0x7fba4025c760
+
+mem_utils.155 - 0x7fba4025c760
+
+model_utils.run_inference - start of run_infer - 0x7fba401f3460
+
+reset being called on - 0x7fba401f3460
+
+while calling inference - 0x7fba401f3460
+
+stopping criteria called (__call__) on - 0x7fba4025c760
+
+reset being done of 0x7fba401f3460

@@ -11,7 +11,7 @@ import torch
 import warnings
 import numpy as np
 import transformers
-from transformers import LogitsWarper
+from transformers import LogitsWarper, StoppingCriteriaList
 from transformers.generation.logits_process import (
     LogitNormalization,
     LogitsProcessor,
@@ -384,3 +384,9 @@ def hijack_samplers():
 
     transformers.GenerationConfig.__init___old = transformers.GenerationConfig.__init__
     transformers.GenerationConfig.__init__ = generation_config_init_patch
+
+def __sklearn_clone__(self):
+    return self
+
+
+StoppingCriteriaList.__sklearn_clone__ = __sklearn_clone__

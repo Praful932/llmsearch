@@ -45,7 +45,7 @@ class MultiTokenStoppingCriteria(StoppingCriteria):
         self.state_initialized = True
 
     def reset(self):
-        print(f"Reset {self}")
+        # print(f"Reset {self}")
         self.batch_size, self.done_tracker = None, []
         self.prompt_length = None
         self.state_initialized = False
@@ -58,13 +58,13 @@ class MultiTokenStoppingCriteria(StoppingCriteria):
         0x7ff6a0413400
         """
         ret_val = False
-        print("state initialized - ", self.state_initialized, "self ", self)
+        # print("state initialized - ", self.state_initialized, "self ", self)
 
 
 
         if not self.state_initialized:
             # Every batch should set this state
-            print(f"Setting state - {self}")
+            # print(f"Setting state - {self}")
             self.set_state(input_ids.shape[0], input_ids.shape[1] - 1)
 
 

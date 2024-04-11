@@ -73,7 +73,7 @@ class LLMEstimatorWrapper(BaseEstimator):
         self.callbacks_after_inference = (
             [] if callbacks_after_inference is None else callbacks_after_inference
         )
-        print(f"During estimator init - {self.callbacks_after_inference}")
+        # print(f"During estimator init - {self.callbacks_after_inference}")
         self.disable_batch_size_cache = disable_batch_size_cache
         self.pred_function = pred_function
         self.is_encoder_decoder = is_encoder_decoder
@@ -174,8 +174,8 @@ class LLMEstimatorWrapper(BaseEstimator):
             Parameter names mapped to their values.
         """
         out = {}
-        print("In get_params")
-        print(f"{traceback.extract_stack(limit=2)[0].name} - {traceback.extract_stack(limit=2)[0].line}")
+        # print("In get_params")
+        # print(f"{traceback.extract_stack(limit=2)[0].name} - {traceback.extract_stack(limit=2)[0].line}")
 
         for key, value in vars(self).items():
             # Ignore any private/protected variables
@@ -209,7 +209,7 @@ class LLMEstimatorWrapper(BaseEstimator):
         _ = self._get_model_generation_params()
 
         # print which function/file called this function
-        print(f"{traceback.extract_stack(limit=2)[0].name} - {traceback.extract_stack(limit=2)[0].line}")
+        # print(f"{traceback.extract_stack(limit=2)[0].name} - {traceback.extract_stack(limit=2)[0].line}")
         logger.debug("Attributes after setting new parameters - %s", _)
         return self
 

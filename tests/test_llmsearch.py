@@ -34,8 +34,8 @@ def print_lines(n = 2):
 
 
 seed = 42
-batch_size = 1
-bm_sample_size = 5
+batch_size = 2
+bm_sample_size = 10
 model_id = "TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ"
 device = "cuda:0"
 
