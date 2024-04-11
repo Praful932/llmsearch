@@ -1,3 +1,11 @@
+"""
+Script to test different gen types
+Works with /archive/runpod_dev_env_setup.sh
+
+Test Runs Different generation params on the model
+Useful to know if monkey patch breaks anything on new versions of transformers
+"""
+
 import re
 import textwrap
 from pathlib import Path
@@ -22,6 +30,7 @@ from llmsearch.utils.model_downloader import download_model_from_hf
 from llmsearch.scripts.stopping_criteria import MultiTokenStoppingCriteria
 
 seed = 42
+batch_size = 1
 bm_sample_size = 2
 model_id = "TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ"
 device = "cuda:0"
@@ -33,8 +42,9 @@ def load_model_and_tokenizer(model_id, temp_model_dir):
     gc_cuda()
 
     model = AutoAWQForCausalLM.from_quantized(
-        quant_path=output_folder, fuse_layers=True, device_map={"": device}
-    ).to(device)
+        quant_path=output_folder, fuse_layers=True, device_map={"": device}, local_files_only=True
+    )
+
     tokenizer = AutoTokenizer.from_pretrained(
         output_folder, local_files_only=True, legacy=False, use_fast=False
     )
@@ -82,6 +92,7 @@ def load_dataset():
         return pt_dataset
 
 
+    # 2-shot prompt template - https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/gsm8k/gsm8k-cot.yaml
     pt = textwrap.dedent(
     """\
     Q: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?
@@ -97,7 +108,6 @@ def load_dataset():
     gsm8k_dataset = datasets.load_dataset("gsm8k", "main")
 
 
-    # Add prompt template
     processed_dataset = preprocess_dataset(
         gsm8k_dataset["train"],
         tokenizer,
@@ -130,17 +140,15 @@ def get_score(y_true, y_pred):
             scores.append(0)
     return sum(scores) / len(scores)
 
-
+# Load Model, Tokenizer, Dataset
 
 temp_model_dir = Path(f"./temp_dir/")
 temp_model_dir.mkdir(exist_ok=True, parents=True)
+
 model, tokenizer = load_model_and_tokenizer(model_id, temp_model_dir)
+
 bm_samples = load_dataset()
 
-# load dataset, model, tokenizer
-
-gsm8k_dataset = datasets.load_dataset("gsm8k", "main")
-# setup
 multi_token_stop_criteria_ob = MultiTokenStoppingCriteria(sequence_ids=[32000])
 stopping_criteria = StoppingCriteriaList([multi_token_stop_criteria_ob])
 
@@ -149,17 +157,15 @@ tuner_ob = Tuner(
     tokenizer=tokenizer,
     dataset=bm_samples,
     device=device,
-    batch_size=1,
+    batch_size=batch_size,
     tokenizer_encode_args={"padding": "longest", "add_special_tokens": False},
     tokenizer_decode_args={"spaces_between_special_tokens": False},
     scorer=get_score,
     prompt_template="{X}",
-    is_encoder_decoder=False,
     seed=seed,
     column_mapping={"input_cols": ["X"], "eval_cols": ["answer"]},
     callbacks_after_inference=[multi_token_stop_criteria_ob.reset],
 )
-
 
 gen_param_list =  yaml_load(Path(__file__).parent / 'test_gen_params.yaml')
 
@@ -168,7 +174,6 @@ for idx, gen_params in tqdm(enumerate(gen_param_list)):
     if 'stopping_criteria' in gen_params:
         gen_params['stopping_criteria'] = stopping_criteria
     score, outputs = tuner_ob.get_score(gen_params)
-
 
     print(f"Score: {score}")
     print(f"Outputs: {outputs}")

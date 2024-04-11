@@ -85,6 +85,8 @@ def run_inference(
     """
     seed = None
 
+    print(f"During start of inference -  {callbacks}")
+
     tokenizer_decode_args = (
         tokenizer_decode_args
         if tokenizer_decode_args
@@ -105,6 +107,7 @@ def run_inference(
         enumerate(batcher(iterable=model_inputs, batch_size=batch_size)),
         total=math.ceil(len(model_inputs) / batch_size),
     ):
+        print(f"Iter {_}")
         gc.collect()
         gc_cuda()
         encoded_input = tokenizer(
@@ -122,6 +125,7 @@ def run_inference(
             inputs=input_ids, attention_mask=attention_mask, **generation_args
         )
 
+        print(f"While calling inference - {callbacks}")
         if callbacks:
             for callback in callbacks:
                 callback()

@@ -9,9 +9,6 @@ __pycache__/
 .vscode/
 temp/
 
-# models
-notebooks/gpt-j-6B-fp16-sharded
-
 # Distribution / packaging
 .Python
 build/

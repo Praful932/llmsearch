@@ -1,4 +1,6 @@
 """Stopping criteria utilities for generation."""
+import threading
+import os
 
 from typing import List
 
@@ -43,22 +45,34 @@ class MultiTokenStoppingCriteria(StoppingCriteria):
         self.state_initialized = True
 
     def reset(self):
-        self.batch_size = None
+        print(f"Reset {self}")
+        self.batch_size, self.done_tracker = None, []
         self.prompt_length = None
         self.state_initialized = False
 
     def __call__(self, input_ids, scores, **kwargs) -> bool:
         """
         This is called after a new token is generated
+
+        0x7ff6a0478700
+        0x7ff6a0413400
         """
         ret_val = False
+        print("state initialized - ", self.state_initialized, "self ", self)
+
+
 
         if not self.state_initialized:
             # Every batch should set this state
+            print(f"Setting state - {self}")
             self.set_state(input_ids.shape[0], input_ids.shape[1] - 1)
+
+
+        # print(f"Running for prompt - {self.prompt_length}, sample input ids - {input_ids[0][self.prompt_length - 5:self.prompt_length]} tid - {threading.get_ident()} pid - {os.getpid()}")
 
         # IDs of all the tokens except the prompt
         lookback_ids_batch = input_ids[:, self.prompt_length :]
+        total_tokens_till_now = lookback_ids_batch.shape[1]
         # look back for 2 more tokens than it takes to encode our stop sequence
         lookback_ids_batch = lookback_ids_batch[:, -self.sequence_id_len :]
 
@@ -74,4 +88,7 @@ class MultiTokenStoppingCriteria(StoppingCriteria):
                     == lookback_ids_batch[i][-(self.sequence_ids.shape[0]) :]
                 )
         ret_val = False not in self.done_tracker
+        if ret_val:
+            # self.reset()
+            print(f"here 2 Stopping, tokens till now - {total_tokens_till_now}")
         return ret_val
