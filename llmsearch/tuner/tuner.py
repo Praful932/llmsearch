@@ -174,8 +174,6 @@ class LLMEstimatorWrapper(BaseEstimator):
             Parameter names mapped to their values.
         """
         out = {}
-        # print("In get_params")
-        # print(f"{traceback.extract_stack(limit=2)[0].name} - {traceback.extract_stack(limit=2)[0].line}")
 
         for key, value in vars(self).items():
             # Ignore any private/protected variables

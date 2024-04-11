@@ -23,11 +23,11 @@ from transformers import StoppingCriteriaList, AutoTokenizer
 
 from llmsearch.tuner import Tuner
 from llmsearch.utils.mem_utils import gc_cuda
-from llmsearch.utils.logging_utils import set_verbosity_debug, set_verbosity_info
+from llmsearch.utils.logging_utils import set_verbosity_debug, set_verbosity_info, set_verbosity_warning
 from llmsearch.utils.model_downloader import download_model_from_hf
 from llmsearch.scripts.stopping_criteria import MultiTokenStoppingCriteria
 
-set_verbosity_debug()
+set_verbosity_warning()
 
 def print_lines(n = 2):
     print("\n" * n)
@@ -35,7 +35,7 @@ def print_lines(n = 2):
 
 seed = 42
 batch_size = 2
-bm_sample_size = 10
+bm_sample_size = 50
 model_id = "TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ"
 device = "cuda:0"
 
@@ -138,8 +138,8 @@ def get_score(y_true, y_pred):
         y_t_answer = y_t["answer"].split("####")[-1].strip()
         y_p_answer = extract_answer_from_out(y_p)
 
-        print("y_pred - ", y_p_answer)
-        print("y_true - ", y_t_answer)
+        # print("y_pred - ", y_p_answer)
+        # print("y_true - ", y_t_answer)
 
         if y_t_answer == y_p_answer:
             scores.append(1)
@@ -175,17 +175,17 @@ tuner_ob = Tuner(
     callbacks_after_inference=callbacks_after_inference,
 )
 
-# gen_params1 = {
-#     "max_new_tokens": 500,
-#     "stopping_criteria": stopping_criteria,
-#     "generation_seed": 42,
-# }
+gen_params1 = {
+    "max_new_tokens": 500,
+    "stopping_criteria": stopping_criteria,
+    "generation_seed": 42,
+}
 
-# scores_before, outputs_before = tuner_ob.get_score(gen_params1)
+scores_before, outputs_before = tuner_ob.get_score(gen_params1)
 
-# print_lines(3)
-# print("Scores before tuning: ", scores_before)
-# print_lines(3)
+print_lines(3)
+print("Scores before tuning: ", scores_before)
+print_lines(3)
 
 # ------------------- Grid Search -------------------
 
@@ -210,10 +210,9 @@ clf = GridSearchCV(
 
 clf.fit(X=tuner_ob.dataset["_X"], y=tuner_ob.dataset["_y"])
 
-# scores_after, outputs_after = tuner_ob.get_score(clf.best_params_)
+scores_after, outputs_after = tuner_ob.get_score(clf.best_params_)
 
-# print_lines(3)
-# print("Scores after tuning: ", scores_after)
-# print_lines(3)
+print_lines(3)
+print("Scores after tuning: ", scores_after)
+print_lines(3)
 
-# temp_model_dir.unlink()
