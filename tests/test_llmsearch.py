@@ -158,7 +158,6 @@ bm_samples = load_dataset()
 multi_token_stop_criteria_ob = MultiTokenStoppingCriteria(sequence_ids=[32000])
 stopping_criteria = StoppingCriteriaList([multi_token_stop_criteria_ob])
 callbacks_after_inference = [multi_token_stop_criteria_ob.reset]
-print(f"During init - {callbacks_after_inference}")
 
 tuner_ob = Tuner(
     model=model,
