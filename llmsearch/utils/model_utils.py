@@ -85,8 +85,6 @@ def run_inference(
     """
     seed = None
 
-    print(f"During start of inference -  {callbacks}")
-
     tokenizer_decode_args = (
         tokenizer_decode_args
         if tokenizer_decode_args
@@ -107,7 +105,6 @@ def run_inference(
         enumerate(batcher(iterable=model_inputs, batch_size=batch_size)),
         total=math.ceil(len(model_inputs) / batch_size),
     ):
-        print(f"Iter {_}")
         gc.collect()
         gc_cuda()
         encoded_input = tokenizer(
@@ -115,7 +112,8 @@ def run_inference(
         )
         # Useful to find completion
         decoded_input = tokenizer.batch_decode(
-            encoded_input["input_ids"], **tokenizer_decode_args,
+            encoded_input["input_ids"],
+            **tokenizer_decode_args,
         )
 
         input_ids = encoded_input.input_ids.to(device)
@@ -125,7 +123,6 @@ def run_inference(
             inputs=input_ids, attention_mask=attention_mask, **generation_args
         )
 
-        print(f"While calling inference - {callbacks}")
         if callbacks:
             for callback in callbacks:
                 callback()
@@ -182,8 +179,5 @@ def decoder_parser(outputs: List[str], formatted_prompts: List[str], prepoc: cal
     """Removes the prompt from the text and calls prepoc on the completion"""
     ret_val = []
     for output, formatted_prompt in zip(outputs, formatted_prompts):
-        # print("Formmated prompt: ", formatted_prompt)
-        # print(f"Model output: ", output)
-        # print(f"After preproc: ", prepoc(output[len(formatted_prompt) :]))
         ret_val.append(prepoc(output[len(formatted_prompt) :]))
     return ret_val
