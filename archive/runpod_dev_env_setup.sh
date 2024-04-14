@@ -12,7 +12,7 @@ export PATH="/root/.local/bin:${PATH}"
 conda create --name llmsearch-env python=3.10
 conda activate llmsearch-env
 
-poetry install --extras "pynvml" --with dev --no-root
+poetry install --extras "pynvml" --with dev
 
 # override transformers & torch instalation
 pip install transformers==4.38.2

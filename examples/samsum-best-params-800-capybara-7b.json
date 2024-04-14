@@ -1,0 +1,29 @@
+{
+    "scores_before": 0.2312602358537843,
+    "scores_after": 0.21628417493002955,
+    "outputs_before": [
+        "Claire is cooking a curry. Linda is also cooking a curry.",
+        "Alyssa and Derek are talking about Fergie's national anthem. Derek saw it last week.",
+        "Ann wants to buy a laptop from Josh. The laptop is available for 250 dollars. Ann will pick it up.",
+        "Matt, Phil and Tony are going to see Bon Jovi in Warsaw next July.",
+        "Anastasia and Darrell are talking about Anastasia's new school photos. Anastasia is not happy with her new school photos. She took the photo in less than a minute. School photos always suck. Anastasia needed a new one for her school ID.",
+        "Mike wants to apply for the research trip. Jake, Florence, Margot and others are going. Jake reminds Mike that it can be harsh in Swazi now. Mike is surprised that Jake doesn't know that the country's name has changed to Eswatini.",
+        "Nathalie, Pauline, Jacob and Anthony are planning a holiday. They are thinking about Greece. Nathalie's sister is getting married on August 10th. They need to be back by that date.",
+        "Kim is looking for fresh ramal fish in Warsaw. She has already tried Polna street market. Margot suggests Kim to check restaurants' menus and ask about their source. Kim is going to grill the fish for a surprise.",
+        "Malik and Samantha are going to try the paleo diet together. They will also go for runs together.",
+        "Suzy asked Linda to follow her on Instagram."
+    ],
+    "outputs_after": [
+        "Claire is cooking a curry dish. Linda is also cooking a curry dish.",
+        "Alyssa and Derek are talking about Fergie's national anthem. Derek saw it last week.",
+        "Ann wants to buy a laptop from Josh. The laptop is available for 250 dollars. Ann will pick it up.",
+        "Matt, Phil and Tony are going to see Bon Jovi in Warsaw next July.",
+        "Anastasia and Darrell are talking about Anastasia's new school photos. Anastasia is not happy with her school photos. She took a photo of her new school photos. Anastasia is not worried about her school photos.",
+        "Mike is going for the research trip. Jake, Florence, Margot and others are also going. Mike will apply too. The country's name is Eswatini.",
+        "Pauline and Tony are going to Greece for their holiday. Jacob and Anthony are going to Greece too. Nathalie's sister is getting married on August 10th.",
+        "Kim is looking for fresh ramal fish in Warsaw. She has already tried Polna street market. Margot suggests Kim to check restaurants' menus and ask about their source. Kim is going to grill the fish for a surprise.",
+        "Malik and Samantha want to lose weight. They are going to try the paleo diet together. They will also go for runs together. Samantha will read more about the paleo diet and will text Malik back later with more info.",
+        "Suzy asked Linda to follow her on Instagram."
+    ],
+    "best_params": "{'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 70, 'no_repeat_ngram_size': 0, 'stopping_criteria': [<llmsearch.scripts.stopping_criteria.MultiTokenStoppingCriteria object at 0x7fdd6c4c4490>], 'temperature': 0.1, 'top_k': 50}"
+}
