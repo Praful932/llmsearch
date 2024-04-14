@@ -2,9 +2,19 @@
 Common utilties
 """
 
+import json
 import yaml
 import inspect
+from pathlib import Path
 from sklearn.base import BaseEstimator
+
+def json_dump(ob : dict, file_path: Path):
+    with open(file_path, 'w', encoding="utf-8") as json_file:
+        json.dump(ob, json_file, indent=4)
+
+def json_load(file_path: Path):
+    with open(file_path, 'r', encoding="utf-8") as json_file:
+        return json.load(json_file)
 
 def yaml_load(file_path):
     """Load yaml file from file path

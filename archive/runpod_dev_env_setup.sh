@@ -2,6 +2,7 @@
 # image - runpod/pytorch:2.2.0-py3.10-cuda12.1.1-devel-ubuntu22.04
 
 # TODO : to be tested
+curl -sSL https://install.python-poetry.org | python3 -
 
 export PATH="~/miniconda3/bin:${PATH}"
 conda init bash
