@@ -249,8 +249,8 @@ class Tuner:
             dataset (Dataset): dataset to perform search on
             column_mapping (Dict[str, list]): should contain `input_cols` & `eval_cols` keys, `input_cols` should contain the columns to be used in the `prompt_template` & `eval_cols` should contain the columns to be used in the `scorer`,
                 all eval_columns will be passed in as a dict as the second argument to the `scorer` function, eg - `{'input_cols' : ["question"], 'eval_cols' : ['answer']}`
-            prompt_template (str): template for the prompt, should contain the keys from `input_cols` in the `column_mapping` eg prompt template - `"Question : How many days are there in a year?\nAnswer : 365\n\nQuestion : {question}\nAnswer : "`
-            sample_preprocessor (Callable): Preprocessor function for the dataset, should have the signature - `(tokenizer, **kwargs) -> str`, where key word arguments are the columns from `input_cols` & `eval_cols` in `column_mapping`
+            prompt_template (str): template with placeholders for `input_cols` from the `column_mapping` argument, eg - `"Question : How many days are there in a year?\nAnswer : 365\n\nQuestion : {question}\nAnswer : "`, not used when `sample_preprocessor` is not None
+            sample_preprocessor (Callable): Preprocessor function for a single example from the `dataset`, should have the signature - `(tokenizer, **kwargs) -> str`, where key word arguments are the columns from `input_cols` & `eval_cols` in `column_mapping`, not used when `prompt_template` is not None
             scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in ground truth and predictions are returns a metric to optimize on, `eval_cols` in `column_mapping` are passed in as the second argument as a List[Dict]
             device (str): device to run inference on, eg - `cuda:0`
             tokenizer_encode_args (Dict, optional): Encoding key value arguments for the `tokenizer`. If `None` it's initialized using the `get_default_input_tokenizer_kwargs` method. Defaults to None.
@@ -278,6 +278,8 @@ class Tuner:
         self.eval_cols = column_mapping["eval_cols"]
 
         assert self.prompt_template or self.sample_preprocessor, "`prompt_template` or `sample_preprocessor` should be provided, got `None` for both"
+        assert not (self.prompt_template and self.sample_preprocessor), "Only one of `prompt_template` or `sample_preprocessor` should be provided"
+
         self.dataset = self.preprocess_dataset(dataset=dataset)
         self.device = device
         self.score_func = scorer
@@ -326,6 +328,8 @@ class Tuner:
             Dataset preprocessor, preprocesses using the `prompt_template` or `sample_preprocessor` function
             `prompt_template` - Useful for already processed datasets(text can be directly fed into the model)
             `sample_preprocessor` - Useful for datasets that need to be preprocessed(converting into chat format) before feeding into the model
+
+            Adds `_X` & `_y` keys to the dataset
 
         Args:
             dataset (Dataset): dataset to preprocess
