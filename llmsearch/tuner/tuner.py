@@ -223,9 +223,10 @@ class Tuner:
         tokenizer: AutoTokenizer,
         dataset: Dataset,
         column_mapping: Dict[str, list],
-        prompt_template: str,
         scorer: Callable,
         device: str,
+        prompt_template: str = None,
+        sample_preprocessor: Callable = None,
         tokenizer_encode_args: Dict = None,
         tokenizer_decode_args: Dict = None,
         batch_size: int = 16,
@@ -249,6 +250,7 @@ class Tuner:
             column_mapping (Dict[str, list]): should contain `input_cols` & `eval_cols` keys, `input_cols` should contain the columns to be used in the `prompt_template` & `eval_cols` should contain the columns to be used in the `scorer`,
                 all eval_columns will be passed in as a dict as the second argument to the `scorer` function, eg - `{'input_cols' : ["question"], 'eval_cols' : ['answer']}`
             prompt_template (str): template for the prompt, should contain the keys from `input_cols` in the `column_mapping` eg prompt template - `"Question : How many days are there in a year?\nAnswer : 365\n\nQuestion : {question}\nAnswer : "`
+            sample_preprocessor (Callable): Preprocessor function for the dataset, should have the signature - `(tokenizer, **kwargs) -> str`, where key word arguments are the columns from `input_cols` & `eval_cols` in `column_mapping`
             scorer (Callable): A function that has this signature - `(y_true: List, y_pred: List) -> float` , takes in ground truth and predictions are returns a metric to optimize on, `eval_cols` in `column_mapping` are passed in as the second argument as a List[Dict]
             device (str): device to run inference on, eg - `cuda:0`
             tokenizer_encode_args (Dict, optional): Encoding key value arguments for the `tokenizer`. If `None` it's initialized using the `get_default_input_tokenizer_kwargs` method. Defaults to None.
@@ -270,21 +272,15 @@ class Tuner:
         """
         self.tokenizer = tokenizer
         self.prompt_template = prompt_template
+        self.sample_preprocessor = sample_preprocessor
         self.column_mapping = column_mapping
         self.input_cols = column_mapping["input_cols"]
         self.eval_cols = column_mapping["eval_cols"]
 
-        self.dataset = dataset.map(
-            lambda sample: {
-                "_X": self.prompt_template.format(
-                    **{input_col: sample[input_col] for input_col in self.input_cols}
-                ),
-                "_y": {eval_col: sample[eval_col] for eval_col in self.eval_cols},
-            }
-        )
+        assert self.prompt_template or self.sample_preprocessor, "`prompt_template` or `sample_preprocessor` should be provided, got `None` for both"
+        self.dataset = self.preprocess_dataset(dataset=dataset)
         self.device = device
         self.score_func = scorer
-        # Make scorer
         self.scorer = make_scorer(
             score_func=scorer, greater_is_better=greater_is_better
         )
@@ -324,6 +320,33 @@ class Tuner:
         )
         # reset cache on every init
         cache.empty_cache()
+
+    def preprocess_dataset(self, dataset : Dataset) -> Dataset:
+        """
+            Dataset preprocessor, preprocesses using the `prompt_template` or `sample_preprocessor` function
+            `prompt_template` - Useful for already processed datasets(text can be directly fed into the model)
+            `sample_preprocessor` - Useful for datasets that need to be preprocessed(converting into chat format) before feeding into the model
+
+        Args:
+            dataset (Dataset): dataset to preprocess
+        """
+        if self.prompt_template:
+            processed_dataset = dataset.map(
+                lambda sample: {
+                    "_X": self.prompt_template.format(
+                        **{input_col: sample[input_col] for input_col in self.input_cols}
+                    ),
+                    "_y": {eval_col: sample[eval_col] for eval_col in self.eval_cols},
+                }
+            )
+        elif self.sample_preprocessor:
+            processed_dataset = dataset.map(
+                lambda sample: {
+                    "_X": self.sample_preprocessor(self.tokenizer, **{col: sample[col] for col in self.input_cols + self.eval_cols}),
+                    "_y": {eval_col: sample[eval_col] for eval_col in self.eval_cols},
+                }
+            )
+        return processed_dataset
 
     def get_default_tokenizer_encode_args(
         self,
