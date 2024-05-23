@@ -50,18 +50,21 @@ class MultiTokenStoppingCriteria(StoppingCriteria):
     def __call__(self, input_ids, scores, **kwargs) -> bool:
         """
         This is called after a new token is generated
-
-        0x7ff6a0478700
-        0x7ff6a0413400
         """
         ret_val = False
 
         if not self.state_initialized:
             # Every batch should set this state
             self.set_state(input_ids.shape[0], input_ids.shape[1] - 1)
+        if input_ids.shape[0] != self.batch_size:
+            self.reset()
+            # last inference failed, set the state again, prompt length is the same
+            # TODO : self.done_tracker can be cached here but not sure if it is worth it
+            self.set_state(input_ids.shape[0], self.prompt_length)
 
         # IDs of all the tokens except the prompt
         lookback_ids_batch = input_ids[:, self.prompt_length :]
+
         # total_tokens_till_now = lookback_ids_batch.shape[1]
         # look back for 2 more tokens than it takes to encode our stop sequence
         lookback_ids_batch = lookback_ids_batch[:, -self.sequence_id_len :]

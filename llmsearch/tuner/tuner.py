@@ -419,17 +419,7 @@ class Tuner:
         if not dataset:
             dataset_to_evaluate = self.dataset
         else:
-            dataset_to_evaluate = dataset.map(
-                lambda sample: {
-                    "_X": self.prompt_template.format(
-                        **{
-                            input_col: sample[input_col]
-                            for input_col in self.input_cols
-                        }
-                    ),
-                    "_y": {eval_col: sample[eval_col] for eval_col in self.eval_cols},
-                }
-            )
+            dataset_to_evaluate = self.preprocess_dataset(dataset=dataset)
         y_pred = run_inference(
             model=self.estimator.model,
             tokenizer=self.estimator.tokenizer,
