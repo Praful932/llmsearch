@@ -4,16 +4,15 @@
 A familiar way to do  hyperparameter search over generation parameters of an LLM. All you need is a model, dataset and a metric.
 
 ## Contents
-- Installation
-- Getting Started
-    - QuickStart
-    - End-to-End Model Examples
-- Benchmarks
-- Recommendations
-- Reproducibility
-- Important Considerations
-- References
-
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+    - [QuickStart](#quickstart) - A notebook to get you started quickly
+    - [End-to-End Model Examples](#end-to-end-model-examples) - Detailed Examples with specific models
+- [Benchmarks](#benchmarks) - Performance comparisons of different models and configurations.
+- [Recommendations](#recommendations) - Best practises
+- [Reproducibility](#reproducibility) - Ensuring consistent and reproducible results.
+- [Important Considerations](#important-considerations) - Key points to be aware of when using llmsearch
+- [References](#references)
 ## Installation
 The package works best with `python>=3.8.1`, `torch>=1.1` and `transformers>=4.27.4`.
 ```
@@ -23,7 +22,7 @@ pip install llmsearch
 ## Getting Started
 
 ### QuickStart
-- [llama-3-8b Example]() - A Quickstart Notebook which shows basic functionality of `llmsearch`
+- [llama-3-8b Example]() - A Quickstart Notebook which shows basic functionality of llmsearch. This notebook will help you understand how to quickly set up and run hyperparameter searches.
 
 ### End-to-End Model Examples
 1. [GSM8K Example](https://github.com/Praful932/llmsearch/blob/main/examples/gsm8k_example.ipynb) - Shows a `GridSearchCV` ran on the [GSM8K](https://huggingface.co/datasets/gsm8k) Dataset using the `TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ` model.
@@ -35,7 +34,7 @@ using a finetuned(on the same dataset) version of `cognitivecomputations/dolphin
 ![llmsearch](assets/bm_gsm8k.png)
 ![llmsearch](assets/bm_samsum.png)
 
-Table shows final metrics on OOS corpus as a result of the search from the e2e examples above
+Table shows final metrics on out-of-sample corpus as a result of the search from the e2e examples above
 
 | Model                                                   | Dataset | Before  | After   | Samples | Metric    | Best Parameters                                                                                                                                                     | Metric File                                            |
 |---------------------------------------------------------|---------|---------|---------|---------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
@@ -45,9 +44,9 @@ Table shows final metrics on OOS corpus as a result of the search from the e2e e
 
 
 ## Recommendations
-1. Searching for generation parameters are generally useful for tasks which have a generative factor involved - output is a variable length text and is not constrained to certain discrete outputs. For instance, searching for generation parameters would be more valuable in a task like summarization than classification where the output is constrained.
-2. Batch size can affect performance during evaluation, most decoder models use `left` padding, The presence of pad token can affect the next token that is generated although very minutely, the effect becomes more pronounced over long sequences. So be sure to evaluate the right batch size settings for your specific use case.
-3. Use a stopping criteria while evaluating models so that model does not endlessly generate tokens until `max_new_tokens` is reached. All of the examples in the repo use a [stopping criteria]().
+1. **Generative Tasks** : Searching for generation parameters is generally more useful for tasks involving variable-length text outputs rather than tasks with constrained, discrete outputs.
+2. **Batch Size** : The batch size can affect performance during evaluation due to the padding tokens' impact on next-token generation. Evaluate the right batch size settings for your specific use case.
+3. **Stopping Criteria** : Use a stopping criteria while evaluating models so that model does not endlessly generate tokens until `max_new_tokens` is reached. All of the examples in the repo use a [stopping criteria]().
 
 ## Reproducibility
 - Running a hyperparameter search works best when results are reproducible (you get similar outputs across different runs).
@@ -56,13 +55,13 @@ Table shows final metrics on OOS corpus as a result of the search from the e2e e
 - Batch size can affect performance during evaluation, most decoder models use `left` padding, The presence of pad token can affect the next token samples that is generated although very minutely, the effect becomes more pronounced over long sequences. So be sure to evaluate your model at the right batch size.
 
 ## Important Considerations
-- `llmsearch` monkey patches certain modules of transformers to make it work with `scikit-learn` specifically these ones
-    - Changed Generation Related Modules - This is required to add support for certain generation stratergies that are not natively supported in HF, specifically - `tfs` & `top_a`, It also adds one other param called `generation_seed` which is used for seeding the generation for reproducibilty
+- `llmsearch` modifies certain modules of the transformers library to work with scikit-learn, including:
+    - Generation Modules - To support additional generation strategies (`tfs`, `top_a`) and the `generation_seed` parameter for reproducibility.
         - `transformers.GenerationMixin._get_logits_warper` - Older module available at `transformers.GenerationMixin._get_logits_warper_old`
         - `transformers.GenerationConfig.__init__` - Older constructor available via `transformers.GenerationConfig.__init__`
-    - Added a new attribute to `StoppingCriteriaList` class which helps in avoiding cloning of the same object while running a search, which otherwise would have destroyed the state of the object
+    - Stopping Criteria - Added attribute to avoid cloning issues during searches.
         - `StoppingCriteriaList.__sklearn_clone__`
-    - Added `tfs` & `top_a` support in `model.generate`
+    - Generation - Added `tfs` & `top_a` support.
 
 ## References
 - Support for `tfs` & `top_a` reference- https://github.com/oobabooga/text-generation-webui/blob/main/modules/sampler_hijack.py
