@@ -32,6 +32,13 @@ using a finetuned(on the same dataset) version of `cognitivecomputations/dolphin
 
 ## Benchmarks
 
+| Model                                                   | Dataset | Before  | After   | Samples | Metric    | Best Parameters                                                                                                                                                     |
+|---------------------------------------------------------|---------|---------|---------|---------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ              | gsm8k   | 0.564   | 0.584   | 500     | accuracy  | {'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 500, 'no_repeat_ngram_size': 0, 'stopping_criteria': [<llmsearch.scripts.stopping_criteria.MultiTokenStoppingCriteria object at 0x7f8f9e357c40>], 'top_k': 10, 'top_p': 0.8} |
+| Praful932/dolphin-2.2.1-mistral-7b-samsum-ft-v1-awq     | samsum  | 0.25543 | 0.25903 | 500     | rouge_2   | {'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 70, 'no_repeat_ngram_size': 0, 'stopping_criteria': [<llmsearch.scripts.stopping_criteria.MultiTokenStoppingCriteria object at 0x7f3b38303610>], 'temperature': 0.1, 'top_k': 50}  |
+
+
+
 
 ## Recommendations
 1. Searching for generation parameters are generally useful for tasks which have a generative factor involved - output is a variable length text and is not constrained to certain discrete outputs. For instance, searching for generation parameters would be more valuable in a task like summarization than classification where the output is constrained.
