@@ -73,6 +73,9 @@ class MultiTokenStoppingCriteria(StoppingCriteria):
         if lookback_ids_batch.nelement() == 0:
             return False
 
+        print(f"Currrent token idx - {input_ids.shape[0]}")
+
+        # for each item in the batch
         for i, done in enumerate(self.done_tracker):
             if not done:
                 # look back as much as the length of the stop token sequence
@@ -80,6 +83,11 @@ class MultiTokenStoppingCriteria(StoppingCriteria):
                     self.sequence_ids
                     == lookback_ids_batch[i][-(self.sequence_ids.shape[0]) :]
                 )
+            print(f"Current batch idx - {i}")
+            print(f"Done tracker - {self.done_tracker[i]}")
+            print(f"Current token - {lookback_ids_batch[i][-1]}")
+        print('\n')
+
         ret_val = False not in self.done_tracker
         if ret_val:
             # useful to know when the generation stops

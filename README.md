@@ -3,7 +3,18 @@
 
 A familiar way to do  hyperparameter search over generation parameters of an LLM. All you need is a model, dataset and a metric.
 
-# Installation
+## Contents
+- Installation
+- Getting Started
+    - QuickStart
+    - End-to-End Model Examples
+- Benchmarks
+- Recommendations
+- Reproducibility
+- Important Considerations
+- References
+
+## Installation
 The package works best with `python>=3.8.1`, `torch>=1.1` and `transformers>=4.27.4`.
 ```
 pip install llmsearch
@@ -12,12 +23,12 @@ pip install llmsearch
 ## Getting Started
 
 ### QuickStart
-- [llama-3-8b Example]() - A Quickstart Notebook shows basic functionality of `llmsearch`
+- [llama-3-8b Example]() - A Quickstart Notebook which shows basic functionality of `llmsearch`
 
 ### End-to-End Model Examples
-1. [GSM8K Example](https://github.com/Praful932/llmsearch/blob/main/examples/gsm8k_example.ipynb) - Shows a GridSearch ran on the [GSM8K](https://huggingface.co/datasets/gsm8k) Dataset using the `TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ` model.
-2. [Samsum Example](https://github.com/Praful932/llmsearch/blob/main/examples/samsum_example.ipynb) - Shows a GridSearch ran on the samsum Dataset
-using a finetuned(on samsum dataset) version of `cognitivecomputations/dolphin-2.2.1-mistral-7b`.
+1. [GSM8K Example](https://github.com/Praful932/llmsearch/blob/main/examples/gsm8k_example.ipynb) - Shows a `GridSearchCV` ran on the [GSM8K](https://huggingface.co/datasets/gsm8k) Dataset using the `TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ` model.
+2. [Samsum Example](https://github.com/Praful932/llmsearch/blob/main/examples/samsum_example.ipynb) - Shows a `GridSearchCV` ran on the [samsum]() Dataset
+using a finetuned(on the same dataset) version of `cognitivecomputations/dolphin-2.2.1-mistral-7b`.
 
 ## Benchmarks
 
