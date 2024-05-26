@@ -26,7 +26,7 @@ try:
 except ImportError:
     if torch.cuda.is_available():
         logger.warning(
-            "pynvml package not found in a CUDA environment, Install it by running - `pip install nvidia-ml-py3` for betting caching of batch size while running hyp param search"
+            "pynvml package not found in a CUDA environment, Install it by running - `pip install nvidia-ml-py3` for setting caching of batch size while running hyp param search"
         )
 
 

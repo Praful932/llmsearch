@@ -16,6 +16,10 @@ A familiar way to do  hyperparameter search over generation parameters of an LLM
 ## Installation
 The package works best with `python>=3.8.1`, `torch>=1.1` and `transformers>=4.27.4`.
 ```
+pip install llmsearch[pynvml]
+```
+If not running on a CUDA environment
+```
 pip install llmsearch
 ```
 
