@@ -41,3 +41,4 @@
   top_p : 0.29
   do_sample : True
   max_new_tokens : 20
+# Add in contrastive search

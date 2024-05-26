@@ -33,8 +33,6 @@ pip install llmsearch
 2. [Samsum Example](https://github.com/Praful932/llmsearch/blob/main/examples/samsum_example.ipynb) - Shows a `GridSearchCV` ran on the [samsum]() Dataset
 using a finetuned(on the same dataset) version of `cognitivecomputations/dolphin-2.2.1-mistral-7b`.
 
-## Benchmarks
-
 ![llmsearch](assets/bm_gsm8k.png)
 ![llmsearch](assets/bm_samsum.png)
 
@@ -42,8 +40,8 @@ Table shows final metrics on out-of-sample corpus as a result of the search from
 
 | Model                                                   | Dataset | Before  | After   | Samples | Metric    | Best Parameters                                                                                                                                                     | Metric File                                            |
 |---------------------------------------------------------|---------|---------|---------|---------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ              | gsm8k   | 0.564   | 0.584   | 500     | accuracy  | {'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 500, 'no_repeat_ngram_size': 0, 'stopping_criteria': [<llmsearch.scripts.stopping_criteria.MultiTokenStoppingCriteria object at 0x7f8f9e357c40>], 'top_k': 10, 'top_p': 0.8} | [metric_file](/Users/praful932/myfiles/code/llmsearch/examples/gsm-8k-best-params-150s-capybara-7b.json)  |
-| Praful932/dolphin-2.2.1-mistral-7b-samsum-ft-v1-awq     | samsum  | 0.25543 | 0.25903 | 500     | rouge_2   | {'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 70, 'no_repeat_ngram_size': 0, 'stopping_criteria': [<llmsearch.scripts.stopping_criteria.MultiTokenStoppingCriteria object at 0x7f3b38303610>], 'temperature': 0.1, 'top_k': 50}  | [metric_file](/Users/praful932/myfiles/code/llmsearch/examples/samsum-best-params-500s-tune-capybara-7b.json)  |
+| TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ              | gsm8k   | 0.545   | 0.5525  | 500     | accuracy  | {'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 500, 'no_repeat_ngram_size': 0, 'stopping_criteria': [<llmsearch.scripts.stopping_criteria.MultiTokenStoppingCriteria object at 0x7f8f9e357c40>], 'top_k': 10, 'top_p': 0.7} | [metric_file](/Users/praful932/myfiles/code/llmsearch/examples/gsm-8k-best-params-150s-capybara-7b.json)  |
+| Praful932/dolphin-2.2.1-mistral-7b-samsum-ft-v1-awq     | samsum  | 0.2543 | 0.2564 | 500     | rouge_2   | {'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 70, 'no_repeat_ngram_size': 0, 'stopping_criteria': [<llmsearch.scripts.stopping_criteria.MultiTokenStoppingCriteria object at 0x7f3b38303610>], 'temperature': 0.1, 'top_k': 50}  | [metric_file](/Users/praful932/myfiles/code/llmsearch/examples/samsum-best-params-500s-tune-capybara-7b.json)  |
 
 
 
