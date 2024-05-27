@@ -17,6 +17,7 @@
   max_new_tokens: 20
 - max_new_tokens : 20
   tfs : 0.9
+  do_sample : True
 - max_new_tokens : 20
   tfs : 0.2
   do_sample : True
@@ -41,4 +42,7 @@
   top_p : 0.29
   do_sample : True
   max_new_tokens : 20
-# Add in contrastive search
+- max_new_tokens : 100
+  penalty_alpha : 0.6
+  top_k : 4
+  use_cache : True

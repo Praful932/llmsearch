@@ -17,7 +17,7 @@ conda create --name llmsearch-env python=3.10 -y && conda activate llmsearch-env
 # pip install autoawq==0.2.5 autoawq_kernels==0.0.6
 
 # if using gptq
-pip install auto_gptq==0.7.1
+# pip install auto_gptq==0.7.1
 
 # if using exllama
 # pip install exllamav2@https://github.com/turboderp/exllamav2/releases/download/v0.0.14/exllamav2-0.0.14+cu121-cp310-cp310-linux_x86_64.whl
