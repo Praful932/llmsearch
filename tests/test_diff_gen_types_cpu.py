@@ -11,7 +11,6 @@ import textwrap
 from pathlib import Path
 
 import sys
-sys.path.append("/workspace/llmsearch")
 
 import torch
 import datasets
@@ -25,12 +24,19 @@ from transformers import AutoTokenizer, GPT2LMHeadModel
 from llmsearch.tuner import Tuner
 from llmsearch.utils.mem_utils import gc_cuda
 from llmsearch.utils.common_utils import yaml_load
+from llmsearch.utils.model_utils import get_device
 from llmsearch.utils.model_downloader import download_model_from_hf
+from llmsearch.utils.logging_utils import set_verbosity_debug
+
+set_verbosity_debug()
 
 seed = 42
 batch_size = 1
 model_id = "gpt2-large"
-device = "cuda:0"
+device = get_device()
+print(f"Device : {device}")
+
+
 
 def load_model_and_tokenizer(model_id, temp_model_dir):
     temp_model_dir.mkdir(exist_ok=True, parents=True)
@@ -39,7 +45,7 @@ def load_model_and_tokenizer(model_id, temp_model_dir):
     gc_cuda()
 
     model = GPT2LMHeadModel.from_pretrained(
-        output_folder, device_map={"": device}, local_files_only=True
+        output_folder, device_map={"": device}, local_files_only=True, torch_dtype=torch.float16
     )
 
     tokenizer = AutoTokenizer.from_pretrained(
@@ -64,6 +70,7 @@ temp_model_dir = Path(f"./temp_dir/")
 temp_model_dir.mkdir(exist_ok=True, parents=True)
 
 model, tokenizer = load_model_and_tokenizer(model_id, temp_model_dir)
+print("Downloaded model")
 
 bm_samples = datasets.Dataset.from_dict(
     {
@@ -72,7 +79,7 @@ bm_samples = datasets.Dataset.from_dict(
     }
 )
 
-
+print("Instantiated Tuner")
 tuner_ob = Tuner(
     model=model,
     tokenizer=tokenizer,
@@ -88,6 +95,8 @@ tuner_ob = Tuner(
 )
 
 gen_param_list =  yaml_load(Path(__file__).parent / 'test_gen_params.yaml')
+
+print("Starting Generation")
 
 for idx, gen_params in tqdm(enumerate(gen_param_list)):
     print(f"Gen Params: {gen_params}")

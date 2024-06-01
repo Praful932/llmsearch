@@ -10,7 +10,10 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.8.1,<4.0"
-torch = ">=1.1"
+torch = [
+    { version = ">=1.1", markers = "sys_platform != 'darwin'" },
+    { version = ">=2.1", markers = "sys_platform == 'darwin'" }
+]
 transformers = { version = "^4.27.4", extras = ["sentencepiece"] }
 datasets = "^2.11.0"
 numpy = ">=1.17"
@@ -29,6 +32,7 @@ jedi = "0.17.2"
 pandas = "^2.0.0"
 evaluate = "^0.4.0"
 ipykernel = "^6.29.4"
+pytest = "^8.2.1"
 
 [tool.poetry.extras]
 pynvml = ["nvidia-ml-py3"]
