@@ -1,7 +1,7 @@
 ![llmsearch](assets/llmsearch.png)
 # llmsearch
 
-A familiar way to do  hyperparameter search over generation parameters of an LLM. All you need is a model, dataset and a metric.
+Conduct hyperparameter search over generation parameters of large language models (LLMs). This tool is designed for ML practitioners looking to optimize their sampling strategies to improve model performance. Simply provide a model, dataset, and performance metric and llmsearch handles the rest.
 
 ## Contents
 - [Installation](#installation)
@@ -9,11 +9,13 @@ A familiar way to do  hyperparameter search over generation parameters of an LLM
     - [QuickStart](#quickstart) - A notebook to get you started quickly
     - [End-to-End Model Examples](#end-to-end-model-examples) - Detailed Examples with specific models & datasets
 - [Recommendations](#recommendations) - Best practises
-- [Reproducibility](#reproducibility) - Ensuring consistent and reproducible results.
-- [Important Considerations](#important-considerations) - Key points to be aware of when using llmsearch
+- [Reproducibility](#reproducibility) - Ensuring consistent and reproducible results
+- [Monkey Patches](#monkey-patches) - Key points to be aware of when using llmsearch
 - [References](#references)
+
+
 ## Installation
-The package works best with `python>=3.8.1`, `torch>=1.1` and `transformers>=4.27.4`.
+The package works best with `python>=3.8.1`, `torch>=1.1` and `transformers>=4.27.4`. Hardware Stats from `pynvml` is used for caching batch size while running the search.
 ```
 pip install llmsearch[pynvml]
 ```
@@ -25,37 +27,37 @@ pip install llmsearch
 ## Getting Started
 
 ### QuickStart
-- [llama-3-8b Example]() - A Quickstart Notebook which shows basic functionality of llmsearch. This notebook will help you understand how to quickly set up and run hyperparameter searches.
+- [llama-3-8b Example](https://github.com/Praful932/llmsearch/blob/main/examples/llmsearch_quickstart.ipynb) - A quickstart notebook which shows the basic functionality of llmsearch. This notebook will help you understand how to quickly set up and run hyperparameter searches.
 
 ### End-to-End Model Examples
 1. [GSM8K Example](https://github.com/Praful932/llmsearch/blob/main/examples/gsm8k_example.ipynb) - Shows a `GridSearchCV` ran on the [GSM8K](https://huggingface.co/datasets/gsm8k) Dataset using the `TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ` model.
-2. [Samsum Example](https://github.com/Praful932/llmsearch/blob/main/examples/samsum_example.ipynb) - Shows a `GridSearchCV` ran on the [samsum]() Dataset
+2. [Samsum Example](https://github.com/Praful932/llmsearch/blob/main/examples/samsum_example.ipynb) - Shows a `GridSearchCV` ran on the [samsum](https://huggingface.co/datasets/samsum) Dataset
 using a finetuned(on the same dataset) version of `cognitivecomputations/dolphin-2.2.1-mistral-7b`.
 
 ![llmsearch](assets/bm_gsm8k.png)
 ![llmsearch](assets/bm_samsum.png)
 
-Table shows metrics as a result of the search from the e2e examples above
+Table shows metrics as a result of the search from the e2e examples above. Before After shows the metric before and after running the hyperparameter search.
 
 | Model                                                   | Dataset | Before  | After   | Samples | Metric    | Best Parameters                                                                                                                                                     | Metric File                                            |
 |---------------------------------------------------------|---------|---------|---------|---------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ              | gsm8k   | 54.5  | 55.25  | 500     | accuracy  | {'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 500, 'no_repeat_ngram_size': 0, 'stopping_criteria': [<llmsearch.scripts.stopping_criteria.MultiTokenStoppingCriteria object at 0x7f8f9e357c40>], 'top_k': 10, 'top_p': 0.7} | [metric_file](/Users/praful932/myfiles/code/llmsearch/examples/gsm-8k-best-params-150s-capybara-7b.json)  |
-| Praful932/dolphin-2.2.1-mistral-7b-samsum-ft-v1-awq     | samsum  | 0.2543 | 0.2564 | 500     | rouge_2   | {'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 70, 'no_repeat_ngram_size': 0, 'stopping_criteria': [<llmsearch.scripts.stopping_criteria.MultiTokenStoppingCriteria object at 0x7f3b38303610>], 'temperature': 0.1, 'top_k': 50}  | [metric_file](/Users/praful932/myfiles/code/llmsearch/examples/samsum-best-params-500s-tune-capybara-7b.json)  |
+| TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ              | gsm8k   | 54.5  | 55.25  | 500     | accuracy  | {'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 500, 'no_repeat_ngram_size': 0, 'stopping_criteria': [<llmsearch.scripts.stopping_criteria.MultiTokenStoppingCriteria object at 0x7f8f9e357c40>], 'top_k': 10, 'top_p': 0.7} | [metric_file](https://github.com/Praful932/llmsearch/blob/main/examples/gsm-8k-best-params-500s-capybara-7b.json)  |
+| Praful932/dolphin-2.2.1-mistral-7b-samsum-ft-v1-awq     | samsum  | 0.2543 | 0.2564 | 500     | rouge_2   | {'do_sample': True, 'generation_seed': 42, 'max_new_tokens': 70, 'no_repeat_ngram_size': 0, 'stopping_criteria': [<llmsearch.scripts.stopping_criteria.MultiTokenStoppingCriteria object at 0x7f3b38303610>], 'temperature': 0.1, 'top_k': 50}  | [metric_file](https://github.com/Praful932/llmsearch/blob/main/examples/samsum-best-params-500s-tune-capybara-7b.json)  |
 
 
 
 ## Recommendations
-1. **Generative Tasks** : Searching for generation parameters is generally more useful for tasks involving variable-length text outputs rather than tasks with constrained, discrete outputs.
-2. **Batch Size** : The batch size can affect performance during evaluation due to the padding tokens added to shorter sequences of the batch. Evaluate the right batch size settings for your specific use case.
-3. **Stopping Criteria** : Use a stopping criteria while evaluating models so that model does not endlessly generate tokens until `max_new_tokens` is reached. All of the examples in the repo use a [stopping criteria]().
+1. **Generative Tasks** : Searching for generation parameters is generally useful for tasks involving variable-length text outputs rather than tasks with constrained, discrete outputs. The impact of generation parameters on discrete outputs is very limited.
+2. **Batch Size** : The right batch size can significantly influence model performance. Experiment with different sizes to find the optimal setting that balances speed and accuracy without excessive padding.
+3. **Stopping Criteria** : Use stopping criteria while evaluating models so that the model does not endlessly generate tokens until `max_new_tokens` is reached. All of the examples in the repo use a [stopping criteria](https://github.com/Praful932/llmsearch/blob/main/llmsearch/scripts/stopping_criteria.py).
 
 ## Reproducibility
-- Running a hyperparameter search works best when results are reproducible (you get similar outputs across different runs).
-- There are quantization frameworks such as `exllama` offer very high inference speed while trading against reproducibility. `AWQ` is one of those quantization methods that is fast and also offers reproducibility (This has been used in end2end examples shared above). Note that there may be usecase that may work well even with `exllama` - problems where there is a soft spot for certain generation parameters.
-- For the generation to be reproducible there is a `generation_seed` parameter that has been introduced in the `model.generate` method of `transformers` module via monkey patching. This is used while running inference to seed outputs, This can be also treated as a hyperparameter in itself.
-- Batch size can affect performance during evaluation, most decoder models use `left` padding, The presence of pad token can affect the next token samples that is generated although very minutely, the effect becomes more pronounced over long sequences. So be sure to evaluate your model at the right batch size.
+- Achieving consistent results is crucial, especially when comparing different hyperparameter settings.
+- Quantization frameworks, such as `exllama`, are designed to significantly enhance inference speed at the cost of reduced reproducibility. However, `AWQ` is another quantization method that not only delivers high inference speed but also maintains a high degree of reproducibility. The e2e examples employ `AWQ`. Note that for certain applications where specific generation parameters are more critical than absolute reproducibility, `exllama` might still be preferable."
+- To ensure reproducibility during the generation process, we've introduced a `generation_seed` parameter in the `model.generate` method of the transformers module via monkey patching. This parameter allows you to seed the model's output generation, ensuring that results can be consistently replicated across different runs. Treating the `generation_seed` as a hyperparameter also allows for fine-tuning the stochastic nature of the model's output, providing another layer of control during experiments.
+- Batch size can affect performance during evaluation, most decoder models use `left` padding, The presence of pad token can affect the next token samples that are generated although very subtly, the effect becomes more pronounced over long sequences. So be sure to evaluate your model at the right batch size.
 
-## Important Considerations
+## Monkey Patches
 - `llmsearch` modifies certain modules of the transformers library to work with scikit-learn, including:
     - Generation Modules - To support additional generation strategies (`tfs`, `top_a`) and the `generation_seed` parameter for reproducibility.
         - `transformers.GenerationMixin._get_logits_warper` - Older module available at `transformers.GenerationMixin._get_logits_warper_old`
