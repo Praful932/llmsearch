@@ -16,6 +16,7 @@ from transformers import AutoTokenizer
 
 from llmsearch.utils.model_utils import run_inference
 from llmsearch.utils.mem_utils import cache
+from llmsearch.utils.common_utils import process_dataset_with_map
 
 from llmsearch.utils.logging_utils import get_logger
 
@@ -277,8 +278,12 @@ class Tuner:
         self.input_cols = column_mapping["input_cols"]
         self.eval_cols = column_mapping["eval_cols"]
 
-        assert self.prompt_template or self.sample_preprocessor, "`prompt_template` or `sample_preprocessor` should be provided, got `None` for both"
-        assert not (self.prompt_template and self.sample_preprocessor), "Only one of `prompt_template` or `sample_preprocessor` should be provided"
+        assert (
+            self.prompt_template or self.sample_preprocessor
+        ), "`prompt_template` or `sample_preprocessor` should be provided, got `None` for both"
+        assert not (
+            self.prompt_template and self.sample_preprocessor
+        ), "Only one of `prompt_template` or `sample_preprocessor` should be provided"
 
         self.dataset = self.preprocess_dataset(dataset=dataset)
         self.device = device
@@ -323,7 +328,7 @@ class Tuner:
         # reset cache on every init
         cache.empty_cache()
 
-    def preprocess_dataset(self, dataset : Dataset) -> Dataset:
+    def preprocess_dataset(self, dataset: Dataset) -> Dataset:
         """
             Dataset preprocessor, preprocesses using the `prompt_template` or `sample_preprocessor` function
             `prompt_template` - Useful for already processed datasets(text can be directly fed into the model)
@@ -338,17 +343,21 @@ class Tuner:
             processed_dataset = dataset.map(
                 lambda sample: {
                     "_X": self.prompt_template.format(
-                        **{input_col: sample[input_col] for input_col in self.input_cols}
+                        **{
+                            input_col: sample[input_col]
+                            for input_col in self.input_cols
+                        }
                     ),
                     "_y": {eval_col: sample[eval_col] for eval_col in self.eval_cols},
                 }
             )
-        elif self.sample_preprocessor:
-            processed_dataset = dataset.map(
-                lambda sample: {
-                    "_X": self.sample_preprocessor(self.tokenizer, **{col: sample[col] for col in self.input_cols + self.eval_cols}),
-                    "_y": {eval_col: sample[eval_col] for eval_col in self.eval_cols},
-                }
+    elif self.sample_preprocessor:
+            processed_dataset = process_dataset_with_map(
+                dataset=dataset,
+                sample_preprocessor=self.sample_preprocessor,
+                tokenizer=self.tokenizer,
+                input_cols=self.input_cols,
+                eval_cols=self.eval_cols,
             )
         return processed_dataset
 

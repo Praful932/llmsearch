@@ -7,14 +7,18 @@ import yaml
 import inspect
 from pathlib import Path
 from sklearn.base import BaseEstimator
+from datasets import Dataset
 
-def json_dump(ob : dict, file_path: Path):
-    with open(file_path, 'w', encoding="utf-8") as json_file:
+
+def json_dump(ob: dict, file_path: Path):
+    with open(file_path, "w", encoding="utf-8") as json_file:
         json.dump(ob, json_file, indent=4)
 
+
 def json_load(file_path: Path):
-    with open(file_path, 'r', encoding="utf-8") as json_file:
+    with open(file_path, "r", encoding="utf-8") as json_file:
         return json.load(json_file)
+
 
 def yaml_load(file_path):
     """Load yaml file from file path
@@ -27,6 +31,47 @@ def yaml_load(file_path):
     """
     with open(file_path, "r") as file:
         return yaml.load(file, Loader=yaml.FullLoader)
+
+
+def process_dataset_with_map(
+    dataset, sample_preprocessor, tokenizer, input_cols, eval_cols
+):
+    """
+    Processes the given dataset by mapping a processing function over each sample.
+
+    Parameters:
+    - dataset (Dataset): A Hugging Face dataset to be processed.
+    - sample_preprocessor (function): A function to preprocess sample inputs.
+    - tokenizer (function): A tokenizer function to apply to input text.
+    - input_cols (list of str): Column names to be processed for input features.
+    - eval_cols (list of str): Column names for evaluation labels.
+
+    Returns:
+    - Dataset: A new dataset with original data and additional processed keys `_X` and `_y`.
+    """
+
+    def process_sample(sample):
+        # Copy original data to retain all keys
+        sample_dict = dict(sample)
+        processed_sample = sample_dict.copy()
+        # Process inputs and store in '_X'
+        processed_sample["_X"] = sample_preprocessor(
+            tokenizer, **{col: sample[col] for col in input_cols + eval_cols}
+        )
+        # Extract evaluation columns and store in '_y'
+        processed_sample["_y"] = {eval_col: sample[eval_col] for eval_col in eval_cols}
+        return processed_sample
+
+    # Apply the processing function to each sample in the dataset
+    mapped_data = map(process_sample, dataset)
+    # Convert the mapped data to a list (necessary for further processing)
+    mapped_list = list(mapped_data)
+
+    # Construct a new dataset from the list of processed samples
+    # This uses dictionary comprehension to handle potentially complex nested structures in '_X' and '_y'
+    return Dataset.from_dict(
+        {key: [dic[key] for dic in mapped_list] for key in mapped_list[0]}
+    )
 
 
 def print_call_stack(n: int):
