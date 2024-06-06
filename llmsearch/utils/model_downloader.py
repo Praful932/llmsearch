@@ -1,4 +1,4 @@
-# https://github.com/oobabooga/text-generation-webui/blob/main/download-model.py
+"""Model downloader - https://github.com/oobabooga/text-generation-webui/blob/main/download-model.py"""
 import argparse
 import base64
 import datetime
@@ -304,6 +304,9 @@ class ModelDownloader:
 
 
 def download_model_from_hf(model_id, save_dir, branch="main", threads=4, max_retries=5):
+    """Download model from HF
+         >>> download_model_from_hf(model_id, save_dir=temp_model_dir, branch="main")
+    """
 
     downloader = ModelDownloader(max_retries=max_retries)
 

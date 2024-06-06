@@ -11,7 +11,7 @@ from typing import List, Dict, Union, Tuple, Iterable, Iterator
 import torch
 import numpy as np
 from tqdm.auto import tqdm
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import AutoTokenizer, AutoModel
 
 from llmsearch.utils.gen_utils import identify_and_validate_gen_params
 from llmsearch.utils.logging_utils import get_logger
@@ -47,7 +47,7 @@ def seed_everything(seed: int):
 
 @batch_without_oom_error
 def run_inference(
-    model: AutoModelForSeq2SeqLM,
+    model: AutoModel,
     tokenizer: AutoTokenizer,
     is_encoder_decoder: bool,
     batch_size: int,
@@ -74,11 +74,11 @@ def run_inference(
         model_inputs (List): model inputs to do inference on
         tokenizer_encode_args (Dict): Encoding arguments for the `tokenizer`
         tokenizer_decode_args (Dict, optional): Decoding arguments for the `tokenizer`. Defaults to `{'skip_special_tokens' : True}`.
-        generation_args (Dict, optional): generation kwargs to use while generating the output. Defaults to None.
+        generation_args (Dict, optional): generation kwargs to use while generating the output. Defaults to `None`.
         disable_generation_param_checks (bool, optional): Disables the custom generation parameter checks, this check does a sanity check of the parameters & produces warnings before doing generation, Not stable right now.
-        return_optimal_batch_size (bool, optional): if the function should return the optimal batch size found, useful for caching when performing cross validation. Defaults to False.
-        output_preproc (Callable, optional): Prepoc to run on the completion, by default strips the output. Note that this is applied on the completion. Defaults to False.
-        callbacks (List, optional): List of callbacks to run after each generation, by default None
+        return_optimal_batch_size (bool, optional): if the function should return the optimal batch size found, useful for caching when performing cross validation. Defaults to `False`.
+        output_preproc (Callable, optional): Prepoc to run on the completion, by default strips the output. Note that this is applied on the completion. Defaults to `False`.
+        callbacks (List, optional): List of callbacks to run after each generation, by default `None`.
 
     Returns:
         Union[Tuple[List, int], List]: outputs and or best batch size
@@ -171,12 +171,29 @@ def batcher(iterable: Iterable, batch_size: int) -> Iterator:
 
 
 def encoder_decoder_parser(outputs: str, prepoc: callable):
-    """Applies the prepoc function on the completion"""
+    """Applies the prepoc function on the completion
+
+    Args:
+        outputs (str): model outputs
+        prepoc (callable): prepoc function
+
+    Returns:
+        List: processed outputs
+    """
     return [prepoc(output) for output in outputs]
 
 
 def decoder_parser(outputs: List[str], formatted_prompts: List[str], prepoc: callable):
-    """Removes the prompt from the text and calls prepoc on the completion"""
+    """Removes the prompt from the text and calls `prepoc` on the completion
+
+    Args:
+        outputs (List[str]): model outputs
+        formatted_prompts (List[str]): formatted prompts
+        prepoc (callable): prepoc function
+
+    Returns:
+        List: processed outputs
+    """
     ret_val = []
     for output, formatted_prompt in zip(outputs, formatted_prompts):
         ret_val.append(prepoc(output[len(formatted_prompt) :]))

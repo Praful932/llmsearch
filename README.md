@@ -1,7 +1,7 @@
 ![llmsearch](assets/llmsearch.png)
 # llmsearch
 
-Conduct hyperparameter search over generation parameters of large language models (LLMs). This tool is designed for ML practitioners looking to optimize their sampling strategies to improve model performance. Simply provide a model, dataset, and performance metric and llmsearch handles the rest.
+Conduct hyperparameter search over generation parameters of large language models (LLMs). This tool is designed for ML practitioners looking to optimize their sampling strategies to improve model performance. Simply provide a model, dataset, and performance metric, llmsearch handles the rest.
 
 ## Contents
 - [Installation](#installation)

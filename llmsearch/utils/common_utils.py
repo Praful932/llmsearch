@@ -36,18 +36,17 @@ def yaml_load(file_path):
 def process_dataset_with_map(
     dataset, sample_preprocessor, tokenizer, input_cols, eval_cols
 ):
-    """
-    Processes the given dataset by mapping a processing function over each sample.
+    """Processes the given dataset by mapping a processing function over each sample.
 
-    Parameters:
-    - dataset (Dataset): A Hugging Face dataset to be processed.
-    - sample_preprocessor (function): A function to preprocess sample inputs.
-    - tokenizer (function): A tokenizer function to apply to input text.
-    - input_cols (list of str): Column names to be processed for input features.
-    - eval_cols (list of str): Column names for evaluation labels.
+    Args:
+        dataset (Dataset): A Hugging Face dataset to be processed.
+        sample_preprocessor (function): A function to preprocess sample inputs.
+        tokenizer (function): A tokenizer function to apply to input text.
+        input_cols (list of str): Column names to be processed for input features.
+        eval_cols (list of str): Column names for evaluation labels.
 
     Returns:
-    - Dataset: A new dataset with original data and additional processed keys `_X` and `_y`.
+        Dataset: A new dataset with original data and additional processed keys `_X` and `_y`.
     """
 
     def process_sample(sample):

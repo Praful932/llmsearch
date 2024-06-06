@@ -1,6 +1,6 @@
 """
-Generation Related Utilties
-Note : Generation Type Detection Scripts are updated as of transformers v4.31.0
+Generation Related Utilties\n
+**Note** : Generation Type Detection Scripts are updated as of transformers `v4.31.0`
 """
 
 from typing import Dict, Union, List, Tuple
@@ -108,7 +108,7 @@ param_dependent_on_sampling = [
 
 def check_sample_parameter(gen_params: Dict, gen_type_params: Union[None, List]):
     """
-    Check if the 'do_sample' parameter is set to True when other parameters that are dependent on sampling are present.
+    Check if the `do_sample` parameter is set to True when other parameters that are dependent on sampling are present.
 
     Args:
         gen_params (Dict): Dictionary containing generation parameters.
@@ -206,14 +206,13 @@ def check_if_param_req_satisfy(gen_params: Dict, param: str, param_req: Dict):
 
 
 def get_sample_hyp_space(seed: int, max_new_tokens: int) -> Tuple[List, List]:
-    """Get sample hyp space
+    """Get 2 sample hyp spaces
 
     Args:
         seed (int): seed
 
     Returns:
-        Tuple[List, List]: First Item is a larger hyp space which searches for individual generation types
-        Second Item of the Tuple are the top generation params as evaluated by oobabooga using Vicuna-13B with instruct prompts - https://www.reddit.com/r/LocalLLaMA/comments/14adfw2/preset_arena_17205_comparisons_between_241/
+        Tuple[List, List]: First Item is a larger hyp space which searches for individual generation types, Second Item of the Tuple are the top generation params as evaluated by [oobabooga using Vicuna-13B with instruct prompts](https://www.reddit.com/r/LocalLLaMA/comments/14adfw2/preset_arena_17205_comparisons_between_241/).
     """
     param_grid1 = [
         {

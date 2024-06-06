@@ -1,8 +1,9 @@
 # pylint: skip-file
 """
-Monkey Patch transformers to add in generation techniques that are currently not supported by the transformers library
+Monkey Patch `transformers` to add in generation techniques that are currently not supported by the `transformers` library.
+Adds `tfs`, `top_a` & `generation_seed` to `transformers.GenerationConfig`
 
-TailFreeLogitsWarper, TopALogitsWarper implementation copied from https://github.com/oobabooga/text-generation-webui/blob/main/modules/sampler_hijack.py
+Implementation Reference of `tfs` & `top_a` from [oobabooga/text-generation-webui](https://github.com//blob/main/modules/sampler_hijack.py)
 """
 import math
 from typing import Union
@@ -23,7 +24,7 @@ from llmsearch.utils.model_utils import seed_everything
 
 
 class TailFreeLogitsWarper(LogitsWarper):
-    """TFS - https://www.trentonbricken.com/Tail-Free-Sampling/"""
+    """[TFS sampling](https://www.trentonbricken.com/Tail-Free-Sampling/)"""
 
     def __init__(
         self,
@@ -75,7 +76,7 @@ class TailFreeLogitsWarper(LogitsWarper):
 
 
 class TopALogitsWarper(LogitsWarper):
-    """Top-A sampling - https://github.com/BlinkDL/RWKV-LM/tree/4cb363e5aa31978d801a47bc89d28e927ab6912e#the-top-a-sampling-method."""
+    """[Top-A sampling](https://github.com/BlinkDL/RWKV-LM/tree/4cb363e5aa31978d801a47bc89d28e927ab6912e#the-top-a-sampling-method.) Introduced in RWKV-LM repo."""
 
     def __init__(
         self,
@@ -112,8 +113,9 @@ class TopALogitsWarper(LogitsWarper):
 
 
 class MirostatLogitsWarper(LogitsWarper):
-    """Mirostat sampling - https://arxiv.org/pdf/2007.14966.pdf
-    Currently not fully supported, needs work to work with a batch of sequences
+    """[Mirostat sampling](https://arxiv.org/pdf/2007.14966.pdf) - Currently not supported, needs work to work with a batch of sequences.
+
+    raises `NotImplementedError` if it gets called
     """
 
     def __init__(
@@ -275,6 +277,9 @@ class MirostatLogitsWarper(LogitsWarper):
 
 
 def get_logits_warper_patch(self, generation_config):
+    """Patch to add in new generation techniques to `transformers.GenerationMixin._get_logits_warper`
+    Adds in `tfs`, `top_a` and `mirostat` (not supported currently by `llmsearch`) to the generation techniques
+    """
     warpers = self._get_logits_warper_old(generation_config)
     warpers_to_add = LogitsProcessorList()
     min_tokens_to_keep = 2 if generation_config.num_beams > 1 else 1
@@ -322,19 +327,25 @@ def get_logits_warper_patch(self, generation_config):
 
 
 def generation_config_init_patch(self, **kwargs):
+    """Patch to add in new generation parameters to `transformers.GenerationConfig`"""
     self.__init___old(**kwargs)
     self.tfs = kwargs.pop("tfs", None)
     self.top_a = kwargs.pop("top_a", None)
     self.generation_seed = kwargs.pop("generation_seed", None)
 
-    # Not in use currently
+    # TODO : Implement Mirostat, batching requires state
     self.mirostat_mode = kwargs.pop("mirostat_mode", 0)
     self.mirostat_eta = kwargs.pop("mirostat_eta", 0.1)
     self.mirostat_tau = kwargs.pop("mirostat_tau", 5)
 
 
 def hijack_samplers():
-    """Patches generation methods to add in new generation techniques"""
+    """Patches generation methods to add in new generation techniques
+
+    - `transformers.GenerationMixin._get_logits_warper` to add in new generation techniques, Older version of the method is stored in `_get_logits_warper_old`
+    - `transformers.GenerationConfig.__init__` to add in new generation parameters, Older version of the method is stored in `__init___old`
+
+    """
     transformers.GenerationMixin._get_logits_warper_old = (
         transformers.GenerationMixin._get_logits_warper
     )

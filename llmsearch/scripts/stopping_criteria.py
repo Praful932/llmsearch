@@ -8,11 +8,8 @@ from transformers import StoppingCriteria
 
 class MultiTokenStoppingCriteria(StoppingCriteria):
     """Criteria to stop on the specified multi-token sequence.
-
-    A modified verion of Stopping Criteria implemented here - https://github.com/EleutherAI/lm-evaluation-harness/blob/27924d77953491f66a038a09892807065e469358/lm_eval/models/utils.py#L208
+    A modified verion of Stopping Criteria forked and modified from [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness/blob/27924d77953491f66a038a09892807065e469358/lm_eval/models/utils.py#L208)
     That maintains a state for each batch of inputs which helps in knowing where to look.
-
-    This code is not thread safe. The same object cannot be used simultaneously in multiple threads.
     """
 
     def __init__(
@@ -37,12 +34,14 @@ class MultiTokenStoppingCriteria(StoppingCriteria):
         self.batch_size, self.done_tracker = None, []
 
     def set_state(self, batch_size, prompt_length):
+        """Set state before starting generation for a new batch"""
         self.batch_size = batch_size
         self.prompt_length = prompt_length
         self.done_tracker = [False] * batch_size
         self.state_initialized = True
 
     def reset(self):
+        """Reset state before starting generation for a new batch"""
         self.batch_size, self.done_tracker = None, []
         self.prompt_length = None
         self.state_initialized = False

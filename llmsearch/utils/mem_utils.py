@@ -1,6 +1,5 @@
 """
-Inspired from toma - https://github.com/BlackHC/
-Memory related utils to do friendly inference
+Inspired from [toma](https://github.com/BlackHC/toma), Memory related utils to do friendly inference.
 """
 
 import gc
@@ -31,7 +30,7 @@ except ImportError:
 
 
 class Cache:
-    """Cache to store the optimal batch size for a specific configuration call"""
+    """Cache to store the optimal batch size for a specific configuration call using traceback and memory information"""
 
     def __init__(self):
         """Initializes cache"""
@@ -116,8 +115,7 @@ cache = Cache()
 
 
 def batch_without_oom_error(func: callable):
-    """Perform Inference on a batch of samples by dividing the batch_size by 2 each time whenever OOM error happens
-    - Function should have a `batch_size` and `disable_batch_size_cache` parameter
+    """Perform Inference on a batch of samples by dividing the batch_size by 2 each time whenever OOM error happens, Function should have a `batch_size` and `disable_batch_size_cache` parameter
 
     Args:
         func (Callable): function having this signature of arguments `*args, batch_size, disable_batch_size_cache, **kwargs`
@@ -207,7 +205,7 @@ def batch_without_oom_error(func: callable):
 
 
 def gc_cuda():
-    """Gargage collect Torch (CUDA) memory."""
+    """Gargage collect RAM & Torch (CUDA) memory."""
     gc.collect()
     if torch.cuda.is_available():
         ctypes.CDLL("libc.so.6").malloc_trim(0)
