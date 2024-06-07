@@ -1,0 +1,63 @@
+name: Publish Python Package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9' # Specify your Python version
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Checkout the branch
+        run: |
+          git checkout main
+
+      # Optional step, Updates Changelog in the repo
+      - name: Update Changelog
+        run: |
+          echo "### ${{ github.event.release.tag_name }}" > new-changelog.md
+          echo "${{ github.event.release.body }}" >> new-changelog.md
+          echo "" >> new-changelog.md
+          cat changelog.md >> new-changelog.md
+          mv new-changelog.md changelog.md
+
+      # Optional step, Updates version in pyproject.toml
+      - name: Update version in pyproject.toml
+        run: |
+          VERSION=$(echo ${{ github.event.release.tag_name }} | sed 's/^v//')
+          sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
+          sed -i "s/__version__ = .*/__version__ = \"$NEW_VERSION\"/" $PACKAGE_NAME/__init__.py
+
+      # Only required if changelog and version is updated in pyproject.toml from above
+      - name: Commit changes
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add changelog.md pyproject.toml
+          git commit -m "Bump up version to ${{ github.event.release.tag_name }}"
+
+      # Only required if changelog and version is updated in pyproject.toml from above
+      - name: Push changes
+        run: git push origin main
+
+      - name: Publish package
+        run: |
+          poetry config repositories.test-pypi https://test.pypi.org/legacy/
+          poetry config pypi-token.test-pypi ${{ secrets.TEST_PYPI_TOKEN }}
+          poetry publish -r test-pypi
