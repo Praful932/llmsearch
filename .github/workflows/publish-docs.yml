@@ -30,7 +30,7 @@ jobs:
             pip install -e .
 
       - name: Build Docs
-        run: pdoc --html --config show_source_code=False --template-dir docs/pdoc_template/ llmsearch/ --force
+        run: pdoc --html --config show_source_code=False --template-dir docs/pdoc_template/ -o docs/ ./llmsearch/ --force
 
       - name : Deploy Build to Netlify
         uses: South-Paw/action-netlify-deploy@v1.0.4
@@ -38,5 +38,5 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           netlify-auth-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           netlify-site-id: ${{ secrets.NETLIFY_SITE_ID }}
-          build-dir: './docs/html/llmsearch'
+          build-dir: './docs/llmsearch'
 
