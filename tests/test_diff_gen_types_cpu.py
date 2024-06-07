@@ -32,7 +32,7 @@ set_verbosity_debug()
 
 seed = 42
 batch_size = 1
-model_id = "gpt2-large"
+model_id = "openai-community/gpt2"
 device = get_device()
 print(f"Device : {device}")
 

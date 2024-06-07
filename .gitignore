@@ -9,6 +9,7 @@ __pycache__/
 .vscode/
 temp/
 docs/html/
+docs/llmsearch/
 
 # Distribution / packaging
 .Python

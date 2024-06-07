@@ -2,6 +2,9 @@
 
 <a href="https://freeimage.host/"><img src="https://iili.io/JpEgiIS.png" alt="JpEgiIS.png" border="0" /></a>
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/90e52247-da13-447b-b2eb-8f169a514877/deploy-status)](https://app.netlify.com/sites/llmsearch/deploys)
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FPraful932%2Fllmsearch&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
+
 Conduct hyperparameter search over generation parameters of large language models (LLMs). This tool is designed for ML practitioners looking to optimize their sampling strategies to improve model performance. Simply provide a model, dataset, and performance metric, llmsearch handles the rest.
 
 ### QuickStart
@@ -12,7 +15,7 @@ Conduct hyperparameter search over generation parameters of large language model
 2. [Samsum Example](https://github.com/Praful932/llmsearch/blob/main/examples/samsum_example.ipynb) - Shows a `GridSearchCV` ran on the [samsum](https://huggingface.co/datasets/samsum) Dataset
 using a finetuned(on the same dataset) version of `cognitivecomputations/dolphin-2.2.1-mistral-7b`.
 
-Refer [README](https://github.com/Praful932/llmsearch) for more details on how to use llmsearch.
+Refer [README](https://github.com/Praful932/llmsearch) further for more details on how to use `llmsearch`.
 
 # API Reference Documentation
 """
