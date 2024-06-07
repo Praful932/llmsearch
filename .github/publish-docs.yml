@@ -1,0 +1,42 @@
+
+name: Deploy(Docs)
+
+# Controls when the action will run.
+on:
+  release:
+    types: [published]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  deploy-docs:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+            pip install pdoc3
+            pip install -e .
+
+      - name: Build Docs
+        run: pdoc --html --config show_source_code=False --template-dir docs/pdoc_template/ llmsearch/ --force
+
+      - name : Deploy Build to Netlify
+        uses: South-Paw/action-netlify-deploy@v1.0.4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          netlify-auth-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          netlify-site-id: ${{ secrets.NETLIFY_SITE_ID }}
+          build-dir: './docs/html/llmsearch'
+

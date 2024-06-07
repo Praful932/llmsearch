@@ -1,5 +1,5 @@
 # Setup dev environment
-# image - runpod/pytorch:2.2.0-py3.10-cuda12.1.1-devel-ubuntu22.04, works with A4000
+# image - runpod/pytorch:2.2.0-py3.10-cuda12.1.1-devel-ubuntu22.04, works with A4000 & RTX 4080
 
 curl -sSL https://install.python-poetry.org | python3 - && export PATH="~/miniconda3/bin:${PATH}" && conda init bash
 
@@ -10,7 +10,7 @@ conda create --name llmsearch-env python=3.10 -y && conda activate llmsearch-env
 # override transformers & torch instalation
 
 # if using awq
-pip install autoawq==0.2.4 autoawq_kernels==0.0.6
+# pip install autoawq==0.2.4 autoawq_kernels==0.0.6
 # pip install autoawq==0.2.5 autoawq_kernels==0.0.6
 
 # if using gptq
