@@ -6,6 +6,8 @@
 
 Conduct hyperparameter search over generation parameters of large language models (LLMs). This tool is designed for ML practitioners looking to optimize their sampling strategies to improve model performance. Simply provide a model, dataset, and performance metric, llmsearch handles the rest.
 
+[Release blog](https://praful932.dev/blog-4-llmsearch/)
+
 ## Contents
 - [Installation](#installation)
 - [Getting Started](#getting-started)
@@ -30,7 +32,7 @@ pip install llmsearch
 ## Getting Started
 
 ### QuickStart
-- [llama-3-8b Example](https://github.com/Praful932/llmsearch/blob/main/examples/llmsearch_quickstart.ipynb) - A quickstart notebook which shows the basic functionality of llmsearch. This notebook will help you understand how to quickly set up and run hyperparameter searches.
+- [llama-3-8b Example](https://github.com/Praful932/llmsearch/blob/main/examples/llmsearch_quickstart.ipynb) [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Praful932/llmsearch/blob/main/examples/llmsearch_quickstart.ipynb) - A quickstart notebook which shows the basic functionality of llmsearch. This notebook will help you understand how to quickly set up and run hyperparameter searches.
 
 ### End-to-End Model Examples
 1. [GSM8K Example](https://github.com/Praful932/llmsearch/blob/main/examples/gsm8k_example.ipynb) - Shows a `GridSearchCV` ran on the [GSM8K](https://huggingface.co/datasets/gsm8k) Dataset using the `TheBloke/CapybaraHermes-2.5-Mistral-7B-AWQ` model.

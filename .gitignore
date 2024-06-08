@@ -79,7 +79,6 @@ docs/_build/
 # PyBuilder
 .pybuilder/
 target/
-.DS_Store
 
 # Jupyter Notebook
 .ipynb_checkpoints
