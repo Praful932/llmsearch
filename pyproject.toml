@@ -3,7 +3,7 @@ name = "llmsearch"
 packages = [
     { include = "llmsearch" },
 ]
-version = "0.1.0"
+version = "0.1.0.dev0"
 description = "Find the Best Generation Parameters for your LLM & Dataset"
 authors = ["Praful932 <praful.mohanan@gmail.com>"]
 readme = "README.md"
